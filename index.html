@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fórum</title>
+<style>
+:root{
+  --laranja:#e7622c; --laranja-esc:#c94e1b; --slate:#4d698e; --texto:#2b3440; --suave:#6b7a90;
+  --linha:#e6ebf1; --fundo:#fff; --fundo2:#f4f6f9; --hover:#f7f9fb;
+  --max:#d92d20; --alta:#e8661a; --media:#a87500; --baixa:#26864f;
+  --raio:6px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--texto);background:var(--fundo)}
+body.carregando #login,body.carregando #espera,body.carregando #app{display:none}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--laranja);outline-offset:2px}
+.oculto{display:none!important}
+
+/* ---------- login / espera ---------- */
+#login,#espera{min-height:100vh;display:grid;place-items:center;background:var(--fundo2);padding:20px}
+.login-box{width:100%;max-width:380px;background:#fff;border:1px solid var(--linha);border-radius:10px;padding:28px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:22px;color:var(--laranja);letter-spacing:-.5px}
+.logo svg{width:28px;height:28px}
+.login-box h1{margin:18px 0 4px;font-size:18px}
+.login-box p{margin:0 0 18px;color:var(--suave);font-size:14px}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+input[type=text],input[type=email],input[type=password],textarea{
+  width:100%;padding:9px 11px;border:1px solid #d3dbe5;border-radius:var(--raio);font:inherit;color:inherit;background:#fff}
+textarea{resize:vertical;min-height:110px}
+input:focus,textarea:focus{border-color:var(--laranja);outline:none;box-shadow:0 0 0 3px #e7622c22}
+.btn{border:0;border-radius:var(--raio);padding:9px 16px;font-weight:600;background:#e8edf3;color:var(--slate)}
+.btn:hover{background:#dce3ec}
+.btn.prim{background:var(--laranja);color:#fff}
+.btn.prim:hover{background:var(--laranja-esc)}
+.btn.ok{background:var(--baixa);color:#fff}
+.btn.ok:hover{background:#1d6d3f}
+.btn.perigo{background:#fdeceb;color:var(--max)}
+.btn.perigo:hover{background:#fbd9d6}
+.btn.peq{padding:6px 12px;font-size:13px}
+.btn.larg{width:100%;margin-top:18px;padding:11px}
+.btn[disabled]{opacity:.55;cursor:default}
+.troca{margin-top:14px;text-align:center;font-size:14px;color:var(--suave)}
+.troca button{background:none;border:0;color:var(--laranja);font-weight:600;padding:0}
+.erro{margin-top:12px;color:var(--max);font-size:13px;min-height:1em}
+
+/* ---------- topo ---------- */
+header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--linha);height:56px;display:flex;align-items:center;gap:18px;padding:0 20px}
+.busca{flex:1;max-width:340px;margin-left:auto}
+.busca input{background:#eef1f6;border-color:transparent;padding:8px 12px}
+.usuario{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--slate)}
+.usuario .sair{background:none;border:0;color:var(--suave);font-size:13px;font-weight:500;padding:4px 6px}
+.usuario .sair:hover{color:var(--laranja)}
+.tag-admin{font-size:11px;font-weight:700;background:var(--texto);color:#fff;border-radius:4px;padding:1px 6px}
+
+/* ---------- layout ---------- */
+.corpo{max-width:1120px;margin:0 auto;padding:24px 20px 60px;display:grid;grid-template-columns:216px 1fr;gap:32px}
+aside .btn.prim{width:100%;padding:11px;font-size:15px;margin-bottom:18px}
+nav .item{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;text-align:left;padding:8px 10px;border-radius:var(--raio);color:var(--slate);font-weight:600}
+nav .item:hover{background:var(--fundo2)}
+nav .item.ativo{color:var(--laranja)}
+nav .item .n{margin-left:auto;font-size:12px;font-weight:700;background:#e8edf3;border-radius:10px;padding:1px 8px;color:var(--slate)}
+nav .item .n.alerta{background:var(--laranja);color:#fff}
+nav .item .ponto{width:10px;height:10px;border-radius:50%;margin:0 4px}
+nav hr{border:0;border-top:1px solid var(--linha);margin:10px 0}
+
+.barra{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.barra h2{margin:0;font-size:17px}
+.barra .sub{color:var(--suave);font-size:13px}
+.barra .btn{margin-left:auto;padding:6px 12px;font-size:13px}
+
+.banner{display:flex;align-items:center;gap:12px;margin-bottom:14px;border-radius:var(--raio);padding:10px 14px;font-size:14px;background:#fdeee6;color:#8a3410;border:1px solid #f6cdb8}
+.banner .btn{margin-left:auto;padding:5px 12px;font-size:13px}
+
+.lista{list-style:none;margin:0;padding:0}
+.topico{display:flex;align-items:center;gap:14px;padding:13px 10px;border-bottom:1px solid var(--linha);cursor:pointer;border-radius:var(--raio)}
+.topico:hover{background:var(--hover)}
+.topico.sem-clique{cursor:default}
+.topico.sem-clique:hover{background:none}
+.avatar{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px}
+.avatar.p{width:30px;height:30px;font-size:12px}
+.topico .info{flex:1;min-width:0}
+.topico .tit{font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topico .meta{font-size:13px;color:var(--suave)}
+.topico .lado{display:flex;align-items:center;gap:12px;flex:none}
+.cont{display:flex;align-items:center;gap:4px;color:var(--suave);font-size:14px;min-width:34px}
+.cont svg{width:16px;height:16px}
+.cont.verde{color:var(--baixa);font-weight:600}
+.badge{font-size:12px;font-weight:700;border-radius:4px;padding:2px 8px;color:#fff;white-space:nowrap}
+.badge.maxima{background:var(--max)}.badge.alta{background:var(--alta)}.badge.media{background:var(--media)}.badge.baixa{background:var(--baixa)}
+.badge.pend{background:#e8edf3;color:var(--slate)}
+.badge.arq{background:#e8edf3;color:var(--suave)}
+.badge.rec{background:#fdeceb;color:var(--max)}
+.vazio{text-align:center;padding:60px 20px;color:var(--suave)}
+.vazio strong{display:block;color:var(--texto);font-size:16px;margin-bottom:4px}
+
+/* ---------- modal ---------- */
+.fundo-modal{position:fixed;inset:0;background:#1d2733aa;z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal{background:#fff;border-radius:10px;width:100%;max-width:680px;box-shadow:0 20px 50px #0004;animation:sobe .14s ease-out}
+@keyframes sobe{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
+.modal .topo{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 0}
+.modal h3{margin:0;font-size:20px;line-height:1.3;flex:1}
+.fechar{background:none;border:0;font-size:24px;line-height:1;color:var(--suave);padding:0 4px}
+.modal .corpo-m{padding:14px 22px 22px}
+.modal .quem{display:flex;align-items:center;gap:10px;color:var(--suave);font-size:13px;margin:10px 0 14px}
+.modal .quem b{color:var(--texto)}
+.desc{white-space:pre-wrap;word-break:break-word;background:var(--fundo2);border-radius:var(--raio);padding:14px 16px}
+.acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.aviso{margin-top:16px;border-radius:var(--raio);padding:11px 14px;font-size:14px;background:#fff6e5;color:#7a5600}
+.aviso.neutro{background:var(--fundo2);color:var(--suave)}
+.resp-tit{margin:24px 0 4px;font-size:14px;font-weight:700;color:var(--slate)}
+.resp{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--linha)}
+.resp .nome{font-weight:600;font-size:14px}
+.resp .nome span{font-weight:400;color:var(--suave);font-size:12px;margin-left:6px}
+.resp .txt{white-space:pre-wrap;word-break:break-word}
+.nova-resp{margin-top:14px}
+.nova-resp textarea{min-height:70px}
+.nova-resp .btn{margin-top:8px}
+.urg-opcoes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.urg-opcoes input{position:absolute;opacity:0}
+.urg-opcoes label{margin:0;text-align:center;border:2px solid var(--linha);border-radius:var(--raio);padding:9px 4px;cursor:pointer;font-weight:700;font-size:14px;color:var(--suave)}
+.urg-opcoes input:checked+label.maxima{border-color:var(--max);background:#fdeceb;color:var(--max)}
+.urg-opcoes input:checked+label.alta{border-color:var(--alta);background:#fff0e5;color:var(--alta)}
+.urg-opcoes input:checked+label.media{border-color:var(--media);background:#fff6dd;color:var(--media)}
+.urg-opcoes input:checked+label.baixa{border-color:var(--baixa);background:#e8f6ee;color:var(--baixa)}
+.urg-opcoes input:focus-visible+label{outline:2px solid var(--laranja);outline-offset:2px}
+.contador{font-size:12px;color:var(--suave);text-align:right;margin-top:2px}
+.rodape-form{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--texto);color:#fff;padding:10px 18px;border-radius:var(--raio);font-size:14px;z-index:99;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.mostra{opacity:1}
+
+@media (max-width:760px){
+  .corpo{grid-template-columns:1fr;gap:14px;padding:14px 12px 60px}
+  nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
+  nav .item{width:auto;white-space:nowrap;background:var(--fundo2)}
+  nav .item.ativo{background:#fdeee6}
+  nav hr{display:none}
+  header{padding:0 12px;gap:10px}
+  .busca{max-width:none}
+  .usuario .nome-u{display:none}
+  .topico .lado .cont:nth-child(n+3){display:none}
+  .topico .tit{white-space:normal}
+  .topico.sem-clique{flex-wrap:wrap}
+}
+@media (prefers-reduced-motion:reduce){.modal{animation:none}#toast{transition:none}}
+</style>
+</head>
+<body class="carregando">
+
+<!-- ================= LOGIN ================= -->
+<section id="login">
+  <div class="login-box">
+    <div class="logo">
+      <svg viewBox="0 0 28 28" fill="currentColor" aria-hidden="true"><path d="M3 4h22v15H13l-6 5v-5H3z"/></svg>
+      Fórum
+    </div>
+    <h1 id="login-titulo">Entrar</h1>
+    <p>Acompanhe as publicações da equipe.</p>
+    <form id="form-login" autocomplete="on">
+      <div id="campo-nome" class="oculto">
+        <label for="l-nome">Nome</label>
+        <input type="text" id="l-nome" maxlength="40" autocomplete="name">
+      </div>
+      <label for="l-email">E-mail</label>
+      <input type="email" id="l-email" required autocomplete="email">
+      <label for="l-senha">Senha</label>
+      <input type="password" id="l-senha" required minlength="6" autocomplete="current-password">
+      <button class="btn prim larg" id="l-enviar" type="submit">Entrar</button>
+      <div class="erro" id="l-erro" role="alert"></div>
+    </form>
+    <div class="troca"><span id="troca-txt">Ainda não tem conta?</span> <button type="button" id="troca-btn">Criar conta</button></div>
+  </div>
+</section>
+
+<!-- ================= AGUARDANDO APROVAÇÃO DO CADASTRO ================= -->
+<section id="espera" class="oculto">
+  <div class="login-box">
+    <div class="logo">
+      <svg viewBox="0 0 28 28" fill="currentColor" aria-hidden="true"><path d="M3 4h22v15H13l-6 5v-5H3z"/></svg>
+      Fórum
+    </div>
+    <h1 id="e-titulo"></h1>
+    <p id="e-texto"></p>
+    <button class="btn larg" data-act="sair">Sair</button>
+  </div>
+</section>
+
+<!-- ================= APP ================= -->
+<div id="app" class="oculto">
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 28 28" fill="currentColor" aria-hidden="true"><path d="M3 4h22v15H13l-6 5v-5H3z"/></svg>
+      Fórum
+    </div>
+    <div class="busca"><input type="text" id="busca" placeholder="Buscar nas publicações carregadas" aria-label="Buscar"></div>
+    <div class="usuario"><span class="nome-u" id="u-nome"></span><span class="tag-admin oculto" id="u-admin">admin</span><button class="sair" data-act="sair">Sair</button></div>
+  </header>
+
+  <div class="corpo">
+    <aside>
+      <button class="btn prim" data-act="novo">Nova publicação</button>
+      <nav id="menu" aria-label="Filtros"></nav>
+    </aside>
+    <main id="principal"></main>
+  </div>
+</div>
+
+<!-- ================= MODAIS ================= -->
+<div class="fundo-modal oculto" id="m-novo" role="dialog" aria-modal="true" aria-labelledby="mn-tit">
+  <div class="modal">
+    <div class="topo"><h3 id="mn-tit">Nova publicação</h3><button class="fechar" data-act="fechar" aria-label="Fechar">×</button></div>
+    <form class="corpo-m" id="form-novo">
+      <label for="n-titulo">Título</label>
+      <input type="text" id="n-titulo" maxlength="120" required minlength="3" placeholder="Ex.: Vazamento na Rua das Flores, 120">
+      <label>Grau de urgência</label>
+      <div class="urg-opcoes">
+        <input type="radio" name="urg" id="u1" value="maxima"><label class="maxima" for="u1">Máxima</label>
+        <input type="radio" name="urg" id="u2" value="alta"><label class="alta" for="u2">Alta</label>
+        <input type="radio" name="urg" id="u3" value="media" checked><label class="media" for="u3">Média</label>
+        <input type="radio" name="urg" id="u4" value="baixa"><label class="baixa" for="u4">Baixa</label>
+      </div>
+      <label for="n-desc">Descrição</label>
+      <textarea id="n-desc" maxlength="2000" required placeholder="Detalhes, endereço, o que precisa ser feito..."></textarea>
+      <div class="contador"><span id="n-cont">0</span>/2000</div>
+      <div class="rodape-form">
+        <button type="button" class="btn" data-act="fechar">Cancelar</button>
+        <button type="submit" class="btn prim" id="n-enviar">Publicar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="fundo-modal oculto" id="m-topico" role="dialog" aria-modal="true" aria-labelledby="mt-tit">
+  <div class="modal" id="m-topico-box"></div>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, addDoc, setDoc, updateDoc,
+  getDocs, onSnapshot, query, where, orderBy, limit, startAfter, writeBatch, increment, arrayUnion }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ============ CONFIGURAÇÃO ============ */
+const firebaseConfig = {
+  apiKey: "AIzaSyC_kXw0UYx9DqxpEyp3URHbDXeVzPRbN0Q",
+  authDomain: "forum-b694f.firebaseapp.com",
+  projectId: "forum-b694f",
+  storageBucket: "forum-b694f.firebasestorage.app",
+  messagingSenderId: "50661581615",
+  appId: "1:50661581615:web:2676b97f98524e41b377da"
+};
+// Admin = documento usuarios/{uid} com o campo admin: true (definido direto no console do Firebase)
+const DIAS_ARQUIVO = 30;            // arquivadas são apagadas depois desse prazo
+const DIA_MS = 86400000;
+
+/* Economia de recursos:
+   - sem Analytics
+   - cache local persistente (reabrir o app lê quase nada do servidor)
+   - listener da lista só fica ligado com a aba visível
+   - respostas só são lidas ao abrir uma publicação
+   - arquivadas só são lidas ao abrir a aba "Arquivadas", 20 por vez
+   - admin é definido pelo e-mail (sem leitura extra no banco) */
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+const TOPICOS = collection(db, "topicos");
+const USUARIOS = collection(db, "usuarios");
+
+/* ============ UTILITÁRIOS ============ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const URG = {
+  maxima:{ n:1, l:"Máxima", cor:"var(--max)" },
+  alta:  { n:2, l:"Alta",   cor:"var(--alta)" },
+  media: { n:3, l:"Média",  cor:"var(--media)" },
+  baixa: { n:4, l:"Baixa",  cor:"var(--baixa)" }
+};
+function ago(ms){
+  const s = Math.floor((Date.now() - ms) / 1000);
+  if (s < 60) return "agora há pouco";
+  const m = Math.floor(s / 60); if (m < 60) return `há ${m} min`;
+  const h = Math.floor(m / 60); if (h < 24) return `há ${h} h`;
+  const d = Math.floor(h / 24); if (d < 30) return `há ${d} ${d === 1 ? "dia" : "dias"}`;
+  return new Date(ms).toLocaleDateString("pt-BR");
+}
+function diasRestantes(arquivadoEm){ return Math.max(0, Math.ceil((arquivadoEm + DIAS_ARQUIVO * DIA_MS - Date.now()) / DIA_MS)); }
+function txtDias(n){ return n === 0 ? "hoje" : n === 1 ? "em 1 dia" : `em ${n} dias`; }
+function corAvatar(txt){ let h = 0; for (const c of String(txt)) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${h} 45% 45%)`; }
+function avatar(nome, uid, peq){ return `<div class="avatar${peq ? " p" : ""}" style="background:${corAvatar(uid || nome)}" aria-hidden="true">${esc((nome || "?").trim().charAt(0).toUpperCase())}</div>`; }
+let tt;
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("mostra"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("mostra"), 3200); }
+function erroTxt(e){
+  const c = e?.code || "";
+  if (c.includes("permission-denied")) return "Sem permissão para essa ação.";
+  if (c.includes("invalid-credential") || c.includes("wrong-password") || c.includes("user-not-found")) return "E-mail ou senha incorretos.";
+  if (c.includes("email-already-in-use")) return "Esse e-mail já tem cadastro.";
+  if (c.includes("weak-password")) return "A senha precisa ter ao menos 6 caracteres.";
+  if (c.includes("invalid-email")) return "E-mail inválido.";
+  if (c.includes("too-many-requests")) return "Muitas tentativas. Aguarde um pouco.";
+  if (c.includes("network")) return "Sem conexão com a internet.";
+  return "Algo deu errado. Tente de novo.";
+}
+const nomeDe = u => u?.displayName || (u?.email || "Usuário").split("@")[0];
+
+/* ============ ESTADO ============ */
+let user = null, isAdmin = false;
+let acesso = false;                 // true quando o usuário está liberado (aprovado ou admin)
+let cadastrando = false, criandoPerfil = false;
+let ativos = [];                    // publicações aberto + pendente (listener)
+let usuarios = [];                  // (admin) cadastros pendentes/recusados
+let arq = { itens: [], ultimo: null, fim: false, carregado: false, carregando: false };
+let visao = "todos";                // todos | pendentes | usuarios | arquivados | u:<urgencia>
+let termo = "";
+let cur = null;                     // { id, src: "ativo" | "arq" }
+let editId = null;                  // id da publicação em edição (null = nova)
+let respostas = [], respostasCarregando = false;
+let unsub = null, unsubU = null, unsubPerfil = null, primeiraU = true;
+
+/* ============ LISTAS EM TEMPO REAL (só com a aba visível) ============ */
+function iniciarLista(){
+  if (!user || !acesso) return;
+  if (!unsub) {
+    const q = query(TOPICOS, where("status", "in", ["aberto", "pendente"]), limit(150));
+    unsub = onSnapshot(q, snap => {
+      ativos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      render();
+      if (cur?.src === "ativo") {
+        const t = ativos.find(x => x.id === cur.id);
+        if (t) renderModal(); else { fecharModais(); toast("Essa publicação foi arquivada ou removida."); }
+      }
+    }, e => toast(erroTxt(e)));
+  }
+  if (isAdmin && !unsubU) {
+    primeiraU = true;
+    const q = query(USUARIOS, where("status", "in", ["pendente", "recusado"]), limit(100));
+    unsubU = onSnapshot(q, snap => {
+      usuarios = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.criadoEm - a.criadoEm);
+      if (!primeiraU && snap.docChanges().some(c => c.type === "added" && c.doc.data().status === "pendente")) toast("Novo usuário aguardando sua aprovação.");
+      primeiraU = false;
+      render();
+    }, e => toast(erroTxt(e)));
+  }
+}
+function pararLista(){
+  if (unsub) { unsub(); unsub = null; }
+  if (unsubU) { unsubU(); unsubU = null; }
+}
+document.addEventListener("visibilitychange", () => document.hidden ? pararLista() : iniciarLista());
+
+/* ============ ARQUIVADAS (sob demanda) ============ */
+async function carregarArquivados(mais){
+  if (arq.carregando) return;
+  arq.carregando = true; render();
+  try {
+    if (!mais) arq = { itens: [], ultimo: null, fim: false, carregado: false, carregando: true };
+    const base = [TOPICOS, where("arquivadoEm", ">", 0), orderBy("arquivadoEm", "desc")];
+    if (mais && arq.ultimo) base.push(startAfter(arq.ultimo));
+    const snap = await getDocs(query(...base, limit(20)));
+    arq.itens = arq.itens.concat(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    arq.ultimo = snap.docs[snap.docs.length - 1] || arq.ultimo;
+    arq.fim = snap.docs.length < 20;
+    arq.carregado = true;
+  } catch (e) { toast(erroTxt(e)); }
+  arq.carregando = false; render();
+}
+
+/* ============ APAGAR (publicação + respostas) ============ */
+async function apagarTopico(id, temRespostas){
+  const b = writeBatch(db);
+  if (temRespostas) {
+    const s = await getDocs(query(collection(db, "topicos", id, "respostas"), limit(450)));
+    s.docs.forEach(d => b.delete(d.ref));
+  }
+  b.delete(doc(db, "topicos", id));
+  await b.commit();
+}
+// Admin: ao abrir o app, apaga as arquivadas há mais de 30 dias (0 leituras se não houver nenhuma)
+async function limparVencidas(){
+  try {
+    const corte = Date.now() - DIAS_ARQUIVO * DIA_MS;
+    const snap = await getDocs(query(TOPICOS, where("arquivadoEm", ">", 0), where("arquivadoEm", "<", corte), limit(25)));
+    if (snap.empty) return;
+    for (const d of snap.docs) await apagarTopico(d.id, (d.data().respostasCount || 0) > 0);
+    arq.carregado = false;
+    toast(`${snap.size} publicação(ões) arquivada(s) há mais de ${DIAS_ARQUIVO} dias foram apagadas.`);
+    if (visao === "arquivados") carregarArquivados(false);
+  } catch (e) { /* silencioso: tenta de novo na próxima abertura */ }
+}
+
+/* ============ RENDER ============ */
+const IC_MSG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>';
+const IC_OK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
+function ordenar(a){ return a.slice().sort((x, y) => (x.urgenciaNivel - y.urgenciaNivel) || (y.criadoEm - x.criadoEm)); }
+
+function render(){
+  if (!user || !acesso) return;
+  if (visao === "usuarios" && !isAdmin) visao = "todos";
+  $("#u-nome").textContent = nomeDe(user);
+  $("#u-admin").classList.toggle("oculto", !isAdmin);
+
+  const pend = ativos.filter(t => t.status === "pendente").length;
+  const novosUsu = usuarios.filter(u => u.status === "pendente").length;
+  const itemMenu = (id, rotulo, n, extra = "") => {
+    const alerta = (id === "pendentes" && pend && isAdmin) || (id === "usuarios" && n);
+    return `<button class="item ${visao === id ? "ativo" : ""}" data-act="visao" data-v="${id}">${extra}${rotulo}${n != null ? `<span class="n ${alerta ? "alerta" : ""}">${n}</span>` : ""}</button>`;
+  };
+  $("#menu").innerHTML =
+    itemMenu("todos", "Todas as publicações", ativos.length) +
+    itemMenu("pendentes", "Aguardando aprovação", pend) +
+    (isAdmin ? itemMenu("usuarios", "Novos usuários", novosUsu) : "") +
+    itemMenu("arquivados", "Arquivadas", null) +
+    "<hr>" +
+    Object.entries(URG).map(([k, u]) => itemMenu("u:" + k, u.l, ativos.filter(t => t.urgencia === k).length, `<span class="ponto" style="background:${u.cor}"></span>`)).join("");
+
+  let h = "";
+  if (isAdmin && novosUsu && visao !== "usuarios")
+    h += `<div class="banner"><span><b>${novosUsu}</b> ${novosUsu === 1 ? "novo usuário aguarda" : "novos usuários aguardam"} sua aprovação.</span><button class="btn prim" data-act="visao" data-v="usuarios">Ver</button></div>`;
+
+  /* ----- tela de novos usuários (admin) ----- */
+  if (visao === "usuarios") {
+    h += `<div class="barra"><h2>Novos usuários</h2><span class="sub">Aprove ou recuse quem pediu acesso</span></div>`;
+    h += usuarios.length
+      ? `<ul class="lista">${usuarios.map(linhaUsuario).join("")}</ul>`
+      : `<div class="vazio"><strong>Nenhum pedido de acesso</strong>Quando alguém criar uma conta, ela aparece aqui.</div>`;
+    $("#principal").innerHTML = h;
+    return;
+  }
+
+  const q = termo.trim().toLowerCase();
+  let itens, titulo, sub = "", vazio;
+  if (visao === "arquivados") {
+    itens = arq.itens; titulo = "Arquivadas"; sub = `Apagadas automaticamente após ${DIAS_ARQUIVO} dias`;
+    vazio = arq.carregado ? "Nada arquivado ainda." : "";
+  } else {
+    itens = ativos;
+    if (visao === "pendentes") { itens = itens.filter(t => t.status === "pendente"); titulo = "Aguardando aprovação"; sub = isAdmin ? "Abra uma publicação para aprovar ou recusar" : "Confirmadas como concluídas, esperando o admin"; vazio = "Nenhuma publicação aguardando aprovação."; }
+    else if (visao.startsWith("u:")) { const k = visao.slice(2); itens = itens.filter(t => t.urgencia === k); titulo = `Urgência ${URG[k].l.toLowerCase()}`; vazio = "Nenhuma publicação com essa urgência."; }
+    else { titulo = "Todas as publicações"; sub = "Da mais urgente para a menos urgente"; vazio = "Nenhuma publicação aberta. Que tal criar a primeira?"; }
+    itens = ordenar(itens);
+  }
+  if (q) itens = itens.filter(t => (t.titulo + " " + t.descricao + " " + t.autorNome).toLowerCase().includes(q));
+
+  h += `<div class="barra"><h2>${titulo}</h2><span class="sub">${sub}</span>${visao === "arquivados" ? `<button class="btn" data-act="atualizar-arq">Atualizar</button>` : ""}</div>`;
+  if (visao === "arquivados" && arq.carregando && !arq.itens.length) h += `<div class="vazio">Carregando…</div>`;
+  else if (!itens.length) h += `<div class="vazio"><strong>${q ? "Nada encontrado" : "Sem publicações"}</strong>${q ? "Tente outro termo." : vazio}</div>`;
+  else h += `<ul class="lista">${itens.map(linha).join("")}</ul>`;
+  if (visao === "arquivados" && arq.carregado && !arq.fim) h += `<div style="text-align:center;margin-top:14px"><button class="btn" data-act="mais-arq" ${arq.carregando ? "disabled" : ""}>${arq.carregando ? "Carregando…" : "Carregar mais"}</button></div>`;
+  $("#principal").innerHTML = h;
+}
+
+function linhaUsuario(u){
+  const recusado = u.status === "recusado";
+  return `<li class="topico sem-clique">
+    ${avatar(u.nome, u.id)}
+    <div class="info"><div class="tit">${esc(u.nome || "Sem nome")}</div><div class="meta">${esc(u.email)} · pediu acesso ${ago(u.criadoEm)}</div></div>
+    <div class="lado">
+      ${recusado ? `<span class="badge rec">Recusado</span>` : ""}
+      <button class="btn ok peq" data-act="usr-ok" data-id="${u.id}">Aprovar</button>
+      ${recusado ? "" : `<button class="btn perigo peq" data-act="usr-no" data-id="${u.id}">Recusar</button>`}
+    </div>
+  </li>`;
+}
+
+function linha(t){
+  const arquivado = !!t.arquivadoEm;
+  const quando = arquivado
+    ? `Arquivada ${ago(t.arquivadoEm)} · será apagada ${txtDias(diasRestantes(t.arquivadoEm))}`
+    : `${esc(t.autorNome)} abriu ${ago(t.criadoEm)}`;
+  const nConf = (t.confirmacoes || []).length;
+  return `<li class="topico" tabindex="0" data-act="abrir" data-id="${t.id}" data-src="${arquivado ? "arq" : "ativo"}">
+    ${avatar(t.autorNome, t.autorUid)}
+    <div class="info"><div class="tit">${esc(t.titulo)}</div><div class="meta">${quando}</div></div>
+    <div class="lado">
+      ${t.status === "pendente" ? `<span class="badge pend">Aguardando aprovação</span>` : ""}
+      ${arquivado ? `<span class="badge arq">Arquivada</span>` : ""}
+      <span class="badge ${t.urgencia}">${URG[t.urgencia]?.l || ""}</span>
+      <span class="cont ${nConf ? "verde" : ""}" title="Confirmações de conclusão">${IC_OK}${nConf}</span>
+      <span class="cont" title="Respostas">${IC_MSG}${t.respostasCount || 0}</span>
+    </div>
+  </li>`;
+}
+
+/* ============ MODAL DA PUBLICAÇÃO ============ */
+function topicoAtual(){ return cur && (cur.src === "arq" ? arq.itens : ativos).find(t => t.id === cur.id); }
+
+function renderModal(){
+  const t = topicoAtual(); if (!t) return;
+  const salvo = $("#r-texto")?.value || "";
+  const arquivado = !!t.arquivadoEm;
+  const conf = t.confirmacoes || [];
+  const euConfirmei = conf.some(c => c.uid === user.uid);
+  const souAutor = t.autorUid === user.uid;
+
+  let acoes = "";
+  if (!arquivado) {
+    if (!souAutor && !euConfirmei) acoes += `<button class="btn ok" data-act="confirmar">Confirmar que foi concluída</button>`;
+    if (isAdmin && t.status === "pendente") acoes += `<button class="btn ok" data-act="aprovar">Aprovar e arquivar</button><button class="btn" data-act="recusar">Recusar</button>`;
+    if (isAdmin && t.status === "aberto") acoes += `<button class="btn" data-act="aprovar">Arquivar</button>`;
+    if (souAutor) acoes += `<button class="btn" data-act="editar">Editar</button>`;
+  }
+  if (isAdmin || souAutor) acoes += `<button class="btn perigo" data-act="excluir">Excluir</button>`;
+
+  let aviso = "";
+  if (!arquivado && euConfirmei) aviso = `<div class="aviso neutro">Você confirmou a conclusão. ${t.status === "pendente" ? "Agora é só aguardar o admin." : ""}</div>`;
+  else if (!arquivado && souAutor) aviso = `<div class="aviso neutro">Outros usuários podem confirmar a conclusão desta publicação.</div>`;
+  if (t.status === "pendente") aviso += `<div class="aviso">Confirmada por ${conf.map(c => esc(c.nome)).join(", ")}. ${isAdmin ? "Aprove para arquivar ou recuse para voltar a aberta." : "Aguardando aprovação do admin."}</div>`;
+  if (arquivado) aviso = `<div class="aviso neutro">Arquivada por ${esc(t.arquivadoPor || "admin")} ${ago(t.arquivadoEm)}. Será apagada ${txtDias(diasRestantes(t.arquivadoEm))}.</div>`;
+
+  $("#m-topico-box").innerHTML = `
+    <div class="topo"><h3 id="mt-tit">${esc(t.titulo)}</h3><button class="fechar" data-act="fechar" aria-label="Fechar">×</button></div>
+    <div class="corpo-m">
+      <div class="quem">${avatar(t.autorNome, t.autorUid, true)}<span><b>${esc(t.autorNome)}</b> publicou ${ago(t.criadoEm)}${t.editadoEm ? " · editada" : ""}</span>
+        <span class="badge ${t.urgencia}" style="margin-left:auto">Urgência ${URG[t.urgencia]?.l.toLowerCase()}</span></div>
+      <div class="desc">${esc(t.descricao)}</div>
+      ${aviso}
+      <div class="acoes">${acoes}</div>
+      <div class="resp-tit">Respostas (${t.respostasCount || 0})</div>
+      <div id="resp-lista">${respostasCarregando ? `<div class="vazio" style="padding:20px">Carregando…</div>` : respostas.map(respHtml).join("")}</div>
+      ${arquivado ? "" : `<div class="nova-resp"><label for="r-texto" class="oculto">Sua resposta</label>
+        <textarea id="r-texto" maxlength="1000" placeholder="Escreva uma resposta ou atualização…"></textarea>
+        <button class="btn prim" data-act="responder">Responder</button></div>`}
+    </div>`;
+  if (salvo && $("#r-texto")) $("#r-texto").value = salvo;
+  $("#m-topico").classList.remove("oculto");
+}
+function respHtml(r){
+  return `<div class="resp">${avatar(r.autorNome, r.autorUid, true)}<div><div class="nome">${esc(r.autorNome)}<span>${ago(r.criadoEm)}</span></div><div class="txt">${esc(r.texto)}</div></div></div>`;
+}
+
+async function abrirTopico(id, src){
+  cur = { id, src }; respostas = []; respostasCarregando = true;
+  renderModal();
+  const t = topicoAtual();
+  if (!t) return;
+  if (!t.respostasCount) { respostasCarregando = false; renderModal(); return; }   // 0 respostas = 0 leituras
+  try {
+    const snap = await getDocs(query(collection(db, "topicos", id, "respostas"), orderBy("criadoEm"), limit(100)));
+    respostas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) { toast(erroTxt(e)); }
+  respostasCarregando = false;
+  if (cur?.id === id) renderModal();
+}
+
+function fecharModais(){
+  $("#m-topico").classList.add("oculto"); $("#m-novo").classList.add("oculto");
+  cur = null; respostas = []; editId = null;
+}
+
+// Abre o formulário: sem argumento = nova publicação; com publicação = edição
+function abrirForm(t){
+  fecharModais();
+  $("#form-novo").reset();
+  editId = t ? t.id : null;
+  $("#mn-tit").textContent = t ? "Editar publicação" : "Nova publicação";
+  $("#n-enviar").textContent = t ? "Salvar" : "Publicar";
+  if (t) {
+    $("#n-titulo").value = t.titulo;
+    $("#n-desc").value = t.descricao;
+    const r = document.querySelector(`input[name="urg"][value="${t.urgencia}"]`); if (r) r.checked = true;
+  }
+  $("#n-cont").textContent = $("#n-desc").value.length;
+  $("#m-novo").classList.remove("oculto"); $("#n-titulo").focus();
+}
+
+/* ============ AÇÕES ============ */
+async function acao(nome, el){
+  const t = topicoAtual();
+  const ref = t && doc(db, "topicos", t.id);
+  try {
+    if (nome === "usr-ok" || nome === "usr-no") {
+      const ok = nome === "usr-ok";
+      await updateDoc(doc(db, "usuarios", el.dataset.id), ok ? { status: "aprovado", aprovadoEm: Date.now() } : { status: "recusado" });
+      toast(ok ? "Usuário aprovado." : "Usuário recusado.");
+      return;
+    }
+    if (!t) return;
+    if (nome === "confirmar") {
+      await updateDoc(ref, { confirmacoes: arrayUnion({ uid: user.uid, nome: nomeDe(user), em: Date.now() }), status: "pendente" });
+      toast("Confirmação enviada para o admin.");
+    }
+    else if (nome === "editar") abrirForm(t);
+    else if (nome === "aprovar") {
+      await updateDoc(ref, { status: "arquivado", arquivadoEm: Date.now(), arquivadoPor: nomeDe(user) });
+      arq.carregado = false; toast("Publicação arquivada.");
+    }
+    else if (nome === "recusar") {
+      await updateDoc(ref, { status: "aberto", confirmacoes: [] });
+      toast("Recusado. A publicação voltou para aberta.");
+    }
+    else if (nome === "excluir") {
+      if (!confirm("Excluir esta publicação de vez? Essa ação não pode ser desfeita.")) return;
+      const era = cur.src;
+      await apagarTopico(t.id, (t.respostasCount || 0) > 0);
+      if (era === "arq") { arq.itens = arq.itens.filter(x => x.id !== t.id); fecharModais(); render(); }
+      toast("Publicação excluída.");
+    }
+    else if (nome === "responder") {
+      const txt = $("#r-texto").value.trim(); if (!txt) return;
+      el.disabled = true;
+      const novo = { texto: txt, autorUid: user.uid, autorNome: nomeDe(user), criadoEm: Date.now() };
+      const nref = doc(collection(db, "topicos", t.id, "respostas"));
+      const b = writeBatch(db);
+      b.set(nref, novo);
+      b.update(ref, { respostasCount: increment(1) });
+      await b.commit();
+      respostas.push({ id: nref.id, ...novo });
+      $("#r-texto").value = "";
+      renderModal();
+    }
+    // quando o admin arquiva, o listener remove a publicação e fecha o modal sozinho
+  } catch (e) { toast(erroTxt(e)); if (el) el.disabled = false; }
+}
+
+/* ============ EVENTOS ============ */
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]");
+  if (el) {
+    const a = el.dataset.act;
+    if (a === "visao") { visao = el.dataset.v; render(); if (visao === "arquivados" && !arq.carregado) carregarArquivados(false); }
+    else if (a === "abrir") abrirTopico(el.dataset.id, el.dataset.src);
+    else if (a === "novo") abrirForm(null);
+    else if (a === "fechar") fecharModais();
+    else if (a === "sair") signOut(auth);
+    else if (a === "mais-arq") carregarArquivados(true);
+    else if (a === "atualizar-arq") carregarArquivados(false);
+    else acao(a, el);
+    return;
+  }
+  if (e.target.classList.contains("fundo-modal")) fecharModais();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") fecharModais();
+  if ((e.key === "Enter" || e.key === " ") && e.target.classList?.contains("topico") && e.target.tabIndex >= 0) { e.preventDefault(); e.target.click(); }
+});
+$("#busca").addEventListener("input", e => { termo = e.target.value; render(); });
+$("#n-desc").addEventListener("input", e => $("#n-cont").textContent = e.target.value.length);
+
+$("#form-novo").addEventListener("submit", async e => {
+  e.preventDefault();
+  const btn = $("#n-enviar"); btn.disabled = true;
+  const urgencia = document.querySelector('input[name="urg"]:checked').value;
+  const dados = {
+    titulo: $("#n-titulo").value.trim(),
+    descricao: $("#n-desc").value.trim(),
+    urgencia, urgenciaNivel: URG[urgencia].n
+  };
+  try {
+    if (editId) {
+      await updateDoc(doc(db, "topicos", editId), { ...dados, editadoEm: Date.now() });
+      fecharModais(); toast("Publicação atualizada.");
+    } else {
+      await addDoc(TOPICOS, {
+        ...dados,
+        status: "aberto",
+        autorUid: user.uid, autorNome: nomeDe(user),
+        criadoEm: Date.now(),
+        respostasCount: 0, confirmacoes: []
+      });
+      fecharModais(); visao = "todos"; render(); toast("Publicação criada.");
+    }
+  } catch (err) { toast(erroTxt(err)); }
+  btn.disabled = false;
+});
+
+/* ============ LOGIN E APROVAÇÃO DE CADASTRO ============ */
+let modoCadastro = false;
+function modoLogin(cad){
+  modoCadastro = cad;
+  $("#login-titulo").textContent = cad ? "Criar conta" : "Entrar";
+  $("#campo-nome").classList.toggle("oculto", !cad);
+  $("#l-nome").required = cad;
+  $("#l-enviar").textContent = cad ? "Criar conta" : "Entrar";
+  $("#troca-txt").textContent = cad ? "Já tem conta?" : "Ainda não tem conta?";
+  $("#troca-btn").textContent = cad ? "Entrar" : "Criar conta";
+  $("#l-senha").autocomplete = cad ? "new-password" : "current-password";
+  $("#l-erro").textContent = "";
+}
+$("#troca-btn").addEventListener("click", () => modoLogin(!modoCadastro));
+$("#form-login").addEventListener("submit", async e => {
+  e.preventDefault();
+  const btn = $("#l-enviar"); btn.disabled = true; $("#l-erro").textContent = "";
+  const email = $("#l-email").value.trim(), senha = $("#l-senha").value;
+  try {
+    if (modoCadastro) {
+      cadastrando = true;
+      try {
+        const nome = $("#l-nome").value.trim();
+        const cred = await createUserWithEmailAndPassword(auth, email, senha);
+        await updateProfile(cred.user, { displayName: nome });
+        // pedido de acesso: fica "pendente" até o admin aprovar
+        await setDoc(doc(db, "usuarios", cred.user.uid), { nome, email: cred.user.email || email, status: "pendente", criadoEm: Date.now() });
+      } finally { cadastrando = false; }
+    } else await signInWithEmailAndPassword(auth, email, senha);
+  } catch (err) { $("#l-erro").textContent = erroTxt(err); }
+  btn.disabled = false;
+});
+
+function mostrarEspera(status){
+  acesso = false; pararLista(); fecharModais();
+  const msg = {
+    carregando: ["Verificando acesso…", ""],
+    pendente:   ["Aguardando aprovação", "Seu cadastro foi enviado ao administrador. Assim que for aprovado, você poderá entrar no fórum. Esta tela atualiza sozinha."],
+    recusado:   ["Acesso não aprovado", "O administrador não aprovou o seu cadastro. Se isso for um engano, fale com ele."]
+  }[status] || ["Aguardando aprovação", ""];
+  $("#e-titulo").textContent = msg[0]; $("#e-texto").textContent = msg[1];
+  $("#login").classList.add("oculto"); $("#app").classList.add("oculto"); $("#espera").classList.remove("oculto");
+}
+function liberar(){
+  if (acesso) return;
+  acesso = true;
+  $("#login").classList.add("oculto"); $("#espera").classList.add("oculto"); $("#app").classList.remove("oculto");
+  render(); iniciarLista();
+  if (isAdmin) limparVencidas();
+}
+async function criarPerfil(){      // contas antigas (criadas antes da aprovação) também passam pelo admin
+  if (criandoPerfil) return; criandoPerfil = true;
+  try { await setDoc(doc(db, "usuarios", user.uid), { nome: nomeDe(user), email: user.email || "", status: "pendente", criadoEm: Date.now() }); }
+  catch (e) { toast(erroTxt(e)); }
+  criandoPerfil = false;
+}
+function observarPerfil(){
+  unsubPerfil = onSnapshot(doc(db, "usuarios", user.uid), snap => {
+    if (!snap.exists()) {
+      if (!snap.metadata.fromCache && !cadastrando) criarPerfil();
+      mostrarEspera("pendente"); return;
+    }
+    const d = snap.data();
+    isAdmin = d.admin === true;
+    if (isAdmin || d.status === "aprovado") liberar(); else mostrarEspera(d.status);
+  }, e => toast(erroTxt(e)));
+}
+function pararPerfil(){ if (unsubPerfil) { unsubPerfil(); unsubPerfil = null; } }
+
+onAuthStateChanged(auth, u => {
+  user = u;
+  document.body.classList.remove("carregando");
+  pararPerfil();
+  if (u) {
+    isAdmin = false; acesso = false;
+    mostrarEspera("carregando"); observarPerfil();   // o perfil diz se é admin ou aprovado
+  } else {
+    pararLista(); acesso = false; isAdmin = false;
+    ativos = []; usuarios = []; arq = { itens: [], ultimo: null, fim: false, carregado: false, carregando: false };
+    visao = "todos"; fecharModais();
+    $("#app").classList.add("oculto"); $("#espera").classList.add("oculto"); $("#login").classList.remove("oculto");
+  }
+});
+</script>
+</body>
+</html>
