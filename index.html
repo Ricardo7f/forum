@@ -406,19 +406,20 @@ function render(){
   $("#u-nome").textContent = nomeDe(user);
   $("#u-admin").classList.toggle("oculto", !isAdmin);
 
-  const pend = ativos.filter(t => t.status === "pendente").length;
+  const abertas = ativos.filter(t => t.status !== "pendente");   // as aguardando aprovação só aparecem na aba própria
+  const pend = ativos.length - abertas.length;
   const novosUsu = usuarios.filter(u => u.status === "pendente").length;
   const itemMenu = (id, rotulo, n, extra = "") => {
     const alerta = (id === "pendentes" && pend && isAdmin) || (id === "usuarios" && n);
     return `<button class="item ${visao === id ? "ativo" : ""}" data-act="visao" data-v="${id}">${extra}${rotulo}${n != null ? `<span class="n ${alerta ? "alerta" : ""}">${n}</span>` : ""}</button>`;
   };
   $("#menu").innerHTML =
-    itemMenu("todos", "Todas as publicações", ativos.length) +
+    itemMenu("todos", "Todas as publicações", abertas.length) +
     itemMenu("pendentes", "Aguardando aprovação", pend) +
     (isAdmin ? itemMenu("usuarios", "Novos usuários", novosUsu) : "") +
     itemMenu("arquivados", "Arquivadas", null) +
     "<hr>" +
-    Object.entries(URG).map(([k, u]) => itemMenu("u:" + k, u.l, ativos.filter(t => t.urgencia === k).length, `<span class="ponto" style="background:${u.cor}"></span>`)).join("");
+    Object.entries(URG).map(([k, u]) => itemMenu("u:" + k, u.l, abertas.filter(t => t.urgencia === k).length, `<span class="ponto" style="background:${u.cor}"></span>`)).join("");
 
   let h = "";
   if (isAdmin && novosUsu && visao !== "usuarios")
@@ -440,8 +441,8 @@ function render(){
     itens = arq.itens; titulo = "Arquivadas"; sub = `Apagadas automaticamente após ${DIAS_ARQUIVO} dias`;
     vazio = arq.carregado ? "Nada arquivado ainda." : "";
   } else {
-    itens = ativos;
-    if (visao === "pendentes") { itens = itens.filter(t => t.status === "pendente"); titulo = "Aguardando aprovação"; sub = isAdmin ? "Abra uma publicação para aprovar ou recusar" : "Confirmadas como concluídas, esperando o admin"; vazio = "Nenhuma publicação aguardando aprovação."; }
+    itens = abertas;
+    if (visao === "pendentes") { itens = ativos.filter(t => t.status === "pendente"); titulo = "Aguardando aprovação"; sub = isAdmin ? "Abra uma publicação para aprovar ou recusar" : "Confirmadas como concluídas, esperando o admin"; vazio = "Nenhuma publicação aguardando aprovação."; }
     else if (visao.startsWith("u:")) { const k = visao.slice(2); itens = itens.filter(t => t.urgencia === k); titulo = `Urgência ${URG[k].l.toLowerCase()}`; vazio = "Nenhuma publicação com essa urgência."; }
     else { titulo = "Todas as publicações"; sub = "Da mais urgente para a menos urgente"; vazio = "Nenhuma publicação aberta. Que tal criar a primeira?"; }
     itens = ordenar(itens);
