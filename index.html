@@ -93,6 +93,7 @@ nav hr{border:0;border-top:1px solid var(--linha);margin:10px 0}
 .badge.pend{background:#e8edf3;color:var(--slate)}
 .badge.arq{background:#e8edf3;color:var(--suave)}
 .badge.rec{background:#fdeceb;color:var(--max)}
+.badge.prog{background:#e3f1ea;color:#1f6b45}
 .vazio{text-align:center;padding:60px 20px;color:var(--suave)}
 .vazio strong{display:block;color:var(--texto);font-size:16px;margin-bottom:4px}
 
@@ -314,7 +315,7 @@ const nomeDe = u => u?.displayName || (u?.email || "Usuário").split("@")[0];
 let user = null, isAdmin = false;
 let acesso = false;                 // true quando o usuário está liberado (aprovado ou admin)
 let cadastrando = false, criandoPerfil = false;
-let ativos = [];                    // publicações aberto + pendente (listener)
+let ativos = [];                    // publicações aberto + programado + pendente (listener)
 let usuarios = [];                  // (admin) cadastros pendentes/recusados
 let arq = { itens: [], ultimo: null, fim: false, carregado: false, carregando: false };
 let visao = "todos";                // todos | pendentes | usuarios | arquivados | u:<urgencia>
@@ -328,7 +329,7 @@ let unsub = null, unsubU = null, unsubPerfil = null, primeiraU = true;
 function iniciarLista(){
   if (!user || !acesso) return;
   if (!unsub) {
-    const q = query(TOPICOS, where("status", "in", ["aberto", "pendente"]), limit(150));
+    const q = query(TOPICOS, where("status", "in", ["aberto", "pendente", "programado"]), limit(150));
     unsub = onSnapshot(q, snap => {
       ativos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       render();
@@ -407,8 +408,9 @@ function render(){
   $("#u-nome").textContent = nomeDe(user);
   $("#u-admin").classList.toggle("oculto", !isAdmin);
 
-  const abertas = ativos.filter(t => t.status !== "pendente");   // as aguardando aprovação só aparecem na aba própria
-  const pend = ativos.length - abertas.length;
+  const abertas = ativos.filter(t => t.status !== "pendente" && t.status !== "programado");   // programadas e aguardando aprovação só aparecem na aba própria
+  const pend = ativos.filter(t => t.status === "pendente").length;
+  const prog = ativos.filter(t => t.status === "programado").length;
   const novosUsu = usuarios.filter(u => u.status === "pendente").length;
   const itemMenu = (id, rotulo, n, extra = "") => {
     const alerta = (id === "pendentes" && pend && isAdmin) || (id === "usuarios" && n);
@@ -416,6 +418,7 @@ function render(){
   };
   $("#menu").innerHTML =
     itemMenu("todos", "Todas as publicações", abertas.length) +
+    itemMenu("programados", "Programado", prog) +
     itemMenu("pendentes", "Aguardando aprovação", pend) +
     (isAdmin ? itemMenu("usuarios", "Novos usuários", novosUsu) : "") +
     itemMenu("arquivados", "Arquivadas", null) +
@@ -443,7 +446,8 @@ function render(){
     vazio = arq.carregado ? "Nada arquivado ainda." : "";
   } else {
     itens = abertas;
-    if (visao === "pendentes") { itens = ativos.filter(t => t.status === "pendente"); titulo = "Aguardando aprovação"; sub = isAdmin ? "Abra uma publicação para aprovar ou recusar" : "Confirmadas como concluídas, esperando o admin"; vazio = "Nenhuma publicação aguardando aprovação."; }
+    if (visao === "programados") { itens = ativos.filter(t => t.status === "programado"); titulo = "Programado"; sub = "Abra a publicação e confirme a execução quando for feita"; vazio = "Nenhuma publicação programada."; }
+    else if (visao === "pendentes") { itens = ativos.filter(t => t.status === "pendente"); titulo = "Aguardando aprovação"; sub = isAdmin ? "Abra uma publicação para aprovar ou recusar" : "Execução confirmada, esperando o admin"; vazio = "Nenhuma publicação aguardando aprovação."; }
     else if (visao.startsWith("u:")) { const k = visao.slice(2); itens = itens.filter(t => t.urgencia === k); titulo = `Urgência ${URG[k].l.toLowerCase()}`; vazio = "Nenhuma publicação com essa urgência."; }
     else { titulo = "Todas as publicações"; sub = "Da mais urgente para a menos urgente"; vazio = "Nenhuma publicação aberta. Que tal criar a primeira?"; }
     itens = ordenar(itens);
@@ -482,10 +486,11 @@ function linha(t){
     <div class="info"><div class="tit">${esc(t.titulo)}</div><div class="meta">${quando}</div></div>
     <div class="lado">
       ${t.recusas ? `<span class="badge rec" title="Quantidade de vezes que o admin recusou a conclusão">${txtRecusas(t.recusas)}</span>` : ""}
+      ${t.status === "programado" ? `<span class="badge prog">Programado</span>` : ""}
       ${t.status === "pendente" ? `<span class="badge pend">Aguardando aprovação</span>` : ""}
       ${arquivado ? `<span class="badge arq">Arquivada</span>` : ""}
       <span class="badge ${t.urgencia}">${URG[t.urgencia]?.l || ""}</span>
-      <span class="cont ${nConf ? "verde" : ""}" title="Confirmações de conclusão">${IC_OK}${nConf}</span>
+      <span class="cont ${nConf ? "verde" : ""}" title="Confirmações de execução">${IC_OK}${nConf}</span>
       <span class="cont" title="Respostas">${IC_MSG}${t.respostasCount || 0}</span>
     </div>
   </li>`;
@@ -504,7 +509,9 @@ function renderModal(){
 
   let acoes = "";
   if (!arquivado) {
-    if (!souAutor && !euConfirmei) acoes += `<button class="btn ok" data-act="confirmar">Confirmar que foi concluída</button>`;
+    if (!souAutor && t.status === "aberto") acoes += `<button class="btn ok" data-act="programar">Programado</button>`;
+    if (t.status === "programado") acoes += `<button class="btn ok" data-act="executar">Confirmar execução</button>`;
+    if (isAdmin && t.status === "programado") acoes += `<button class="btn" data-act="desprogramar">Desprogramar</button>`;
     if (isAdmin && t.status === "pendente") acoes += `<button class="btn ok" data-act="aprovar">Aprovar e arquivar</button><button class="btn" data-act="recusar">Recusar</button>`;
     if (isAdmin && t.status === "aberto") acoes += `<button class="btn" data-act="aprovar">Arquivar</button>`;
     if (souAutor) acoes += `<button class="btn" data-act="editar">Editar</button>`;
@@ -513,11 +520,12 @@ function renderModal(){
   if (isAdmin || souAutor) acoes += `<button class="btn perigo" data-act="excluir">Excluir</button>`;
 
   let aviso = "";
-  if (!arquivado && euConfirmei) aviso = `<div class="aviso neutro">Você confirmou a conclusão. ${t.status === "pendente" ? "Agora é só aguardar o admin." : ""}</div>`;
-  else if (!arquivado && souAutor) aviso = `<div class="aviso neutro">Outros usuários podem confirmar a conclusão desta publicação.</div>`;
-  if (t.status === "pendente") aviso += `<div class="aviso">Confirmada por ${conf.map(c => esc(c.nome)).join(", ")}. ${isAdmin ? "Aprove para arquivar ou recuse para voltar a aberta." : "Aguardando aprovação do admin."}</div>`;
-  if (t.recusas && !arquivado) aviso += `<div class="aviso neutro">${txtRecusas(t.recusas)} pelo admin.</div>`;
+  if (!arquivado && euConfirmei) aviso = `<div class="aviso neutro">Você confirmou a execução. ${t.status === "pendente" ? "Agora é só aguardar o admin." : ""}</div>`;
+  else if (!arquivado && souAutor && t.status === "aberto") aviso = `<div class="aviso neutro">Outros usuários podem marcar esta publicação como programada.</div>`;
+  if (t.status === "programado") aviso += `<div class="aviso neutro">Programado${t.programadoPor?.nome ? " por " + esc(t.programadoPor.nome) : ""}. Confirme a execução quando ela for feita.</div>`;
+  if (t.status === "pendente") aviso += `<div class="aviso">Execução confirmada por ${conf.map(c => esc(c.nome)).join(", ")}. ${isAdmin ? "Aprove para arquivar ou recuse para voltar a aberta." : "Aguardando aprovação do admin."}</div>`;
   if (arquivado) aviso = `<div class="aviso neutro">Arquivada por ${esc(t.arquivadoPor || "admin")} ${ago(t.arquivadoEm)}. Será apagada ${txtDias(diasRestantes(t.arquivadoEm))}.</div>`;
+  if (t.recusas) aviso += `<div class="aviso neutro">${txtRecusas(t.recusas)} pelo admin.</div>`;
 
   $("#m-topico-box").innerHTML = `
     <div class="topo"><h3 id="mt-tit">${esc(t.titulo)}</h3><button class="fechar" data-act="fechar" aria-label="Fechar">×</button></div>
@@ -587,9 +595,18 @@ async function acao(nome, el){
       return;
     }
     if (!t) return;
-    if (nome === "confirmar") {
+    if (nome === "programar") {
+      await updateDoc(ref, { status: "programado", programadoPor: { uid: user.uid, nome: nomeDe(user), em: Date.now() } });
+      toast("Publicação programada.");
+    }
+    else if (nome === "desprogramar") {
+      if (!isAdmin) return;
+      await updateDoc(ref, { status: "aberto", programadoPor: deleteField() });
+      toast("Publicação desprogramada. Ela voltou para as abertas.");
+    }
+    else if (nome === "executar") {
       await updateDoc(ref, { confirmacoes: arrayUnion({ uid: user.uid, nome: nomeDe(user), em: Date.now() }), status: "pendente" });
-      toast("Confirmação enviada para o admin.");
+      toast("Execução confirmada. Enviada para aprovação do admin.");
     }
     else if (nome === "editar") abrirForm(t);
     else if (nome === "aprovar") {
@@ -597,7 +614,7 @@ async function acao(nome, el){
       arq.carregado = false; toast("Publicação arquivada.");
     }
     else if (nome === "recusar") {
-      await updateDoc(ref, { status: "aberto", confirmacoes: [], recusas: increment(1), recusadoEm: Date.now() });
+      await updateDoc(ref, { status: "aberto", confirmacoes: [], programadoPor: deleteField(), recusas: increment(1), recusadoEm: Date.now() });
       toast("Recusado. A publicação voltou para aberta.");
     }
     else if (nome === "desarquivar") {
