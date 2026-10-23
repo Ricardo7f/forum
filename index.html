@@ -244,7 +244,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, addDoc, setDoc, updateDoc,
-  getDocs, onSnapshot, query, where, orderBy, limit, startAfter, writeBatch, increment, arrayUnion }
+  getDocs, onSnapshot, query, where, orderBy, limit, startAfter, writeBatch, increment, arrayUnion, deleteField }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ============ CONFIGURAÇÃO ============ */
@@ -289,11 +289,6 @@ function ago(ms){
   const h = Math.floor(m / 60); if (h < 24) return `há ${h} h`;
   const d = Math.floor(h / 24); if (d < 30) return `há ${d} ${d === 1 ? "dia" : "dias"}`;
   return new Date(ms).toLocaleDateString("pt-BR");
-}
-function dataHora(ms){
-  if (!ms) return "";
-  const d = new Date(ms);
-  return d.toLocaleDateString("pt-BR") + " às " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 function txtRecusas(n){ return n === 1 ? "Recusada 1 vez" : `Recusada ${n} vezes`; }
 function diasRestantes(arquivadoEm){ return Math.max(0, Math.ceil((arquivadoEm + DIAS_ARQUIVO * DIA_MS - Date.now()) / DIA_MS)); }
@@ -480,7 +475,7 @@ function linha(t){
   const arquivado = !!t.arquivadoEm;
   const quando = arquivado
     ? `Arquivada ${ago(t.arquivadoEm)} · será apagada ${txtDias(diasRestantes(t.arquivadoEm))}`
-    : `${esc(t.autorNome)} abriu ${ago(t.criadoEm)} · ${dataHora(t.criadoEm)}`;
+    : `${esc(t.autorNome)} abriu ${ago(t.criadoEm)}`;
   const nConf = (t.confirmacoes || []).length;
   return `<li class="topico" tabindex="0" data-act="abrir" data-id="${t.id}" data-src="${arquivado ? "arq" : "ativo"}">
     ${avatar(t.autorNome, t.autorUid)}
@@ -514,6 +509,7 @@ function renderModal(){
     if (isAdmin && t.status === "aberto") acoes += `<button class="btn" data-act="aprovar">Arquivar</button>`;
     if (souAutor) acoes += `<button class="btn" data-act="editar">Editar</button>`;
   }
+  if (isAdmin && arquivado) acoes += `<button class="btn ok" data-act="desarquivar">Desarquivar</button>`;
   if (isAdmin || souAutor) acoes += `<button class="btn perigo" data-act="excluir">Excluir</button>`;
 
   let aviso = "";
@@ -526,7 +522,7 @@ function renderModal(){
   $("#m-topico-box").innerHTML = `
     <div class="topo"><h3 id="mt-tit">${esc(t.titulo)}</h3><button class="fechar" data-act="fechar" aria-label="Fechar">×</button></div>
     <div class="corpo-m">
-      <div class="quem">${avatar(t.autorNome, t.autorUid, true)}<span><b>${esc(t.autorNome)}</b> publicou em ${dataHora(t.criadoEm)}${t.editadoEm ? " · editada" : ""}</span>
+      <div class="quem">${avatar(t.autorNome, t.autorUid, true)}<span><b>${esc(t.autorNome)}</b> publicou ${ago(t.criadoEm)}${t.editadoEm ? " · editada" : ""}</span>
         <span class="badge ${t.urgencia}" style="margin-left:auto">Urgência ${URG[t.urgencia]?.l.toLowerCase()}</span></div>
       <div class="desc">${esc(t.descricao)}</div>
       ${aviso}
@@ -603,6 +599,13 @@ async function acao(nome, el){
     else if (nome === "recusar") {
       await updateDoc(ref, { status: "aberto", confirmacoes: [], recusas: increment(1), recusadoEm: Date.now() });
       toast("Recusado. A publicação voltou para aberta.");
+    }
+    else if (nome === "desarquivar") {
+      if (!isAdmin) return;
+      const era = cur.src;
+      await updateDoc(ref, { status: "aberto", confirmacoes: [], arquivadoEm: deleteField(), arquivadoPor: deleteField() });
+      if (era === "arq") { arq.itens = arq.itens.filter(x => x.id !== t.id); fecharModais(); render(); }
+      toast("Publicação desarquivada. Ela voltou para as abertas.");
     }
     else if (nome === "excluir") {
       if (!confirm("Excluir esta publicação de vez? Essa ação não pode ser desfeita.")) return;
