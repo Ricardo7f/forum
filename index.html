@@ -84,7 +84,13 @@ nav hr{border:0;border-top:1px solid var(--linha);margin:10px 0}
 .topico .info{flex:1;min-width:0}
 .topico .tit{font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .topico .meta{font-size:13px;color:var(--suave)}
-.topico .lado{display:flex;align-items:center;gap:12px;flex:none}
+.topico .lado{display:grid;grid-template-columns:120px 150px 64px 38px 38px;align-items:center;gap:12px;flex:none}
+.lado .s-rec{display:flex;justify-content:flex-end}
+.lado .s-st{display:flex;justify-content:center}
+.lado .badge.urg{justify-self:stretch}
+.stat{position:relative;display:flex;justify-content:center;width:150px}
+.badge.urg{min-width:62px;text-align:center}
+.stat small{position:absolute;top:100%;left:0;right:0;margin-top:3px;text-align:center;font-size:11px;line-height:1.2;color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cont{display:flex;align-items:center;gap:4px;color:var(--suave);font-size:14px;min-width:34px}
 .cont svg{width:16px;height:16px}
 .cont.verde{color:var(--baixa);font-weight:600}
@@ -142,7 +148,11 @@ nav hr{border:0;border-top:1px solid var(--linha);margin:10px 0}
   header{padding:0 12px;gap:10px}
   .busca{max-width:none}
   .usuario .nome-u{display:none}
-  .topico .lado .cont:nth-child(n+3){display:none}
+  .topico .lado{display:flex}
+  .lado .s-rec:empty,.lado .s-st:empty{display:none}
+  .lado .cont.c-resp{display:none}
+  .stat{width:auto;flex-direction:column;align-items:center}
+  .stat small{position:static;margin-top:2px}
   .topico .tit{white-space:normal}
   .topico.sem-clique{flex-wrap:wrap}
 }
@@ -290,6 +300,12 @@ function ago(ms){
   const h = Math.floor(m / 60); if (h < 24) return `há ${h} h`;
   const d = Math.floor(h / 24); if (d < 30) return `há ${d} ${d === 1 ? "dia" : "dias"}`;
   return new Date(ms).toLocaleDateString("pt-BR");
+}
+function ultimaAcao(t){
+  if (t.status === "pendente") { const c = (t.confirmacoes || []).slice(-1)[0]; return c ? `Execução confirmada por ${esc(c.nome)} ${ago(c.em)}` : ""; }
+  if (t.status === "programado" && t.programadoPor?.nome) return `Programado por ${esc(t.programadoPor.nome)} ${ago(t.programadoPor.em)}`;
+  if (t.status === "aberto" && t.desprogramadoPor?.nome) return `Desprogramado por ${esc(t.desprogramadoPor.nome)} ${ago(t.desprogramadoPor.em)}`;
+  return "";
 }
 function txtRecusas(n){ return n === 1 ? "Recusada 1 vez" : `Recusada ${n} vezes`; }
 function diasRestantes(arquivadoEm){ return Math.max(0, Math.ceil((arquivadoEm + DIAS_ARQUIVO * DIA_MS - Date.now()) / DIA_MS)); }
@@ -479,19 +495,22 @@ function linha(t){
   const arquivado = !!t.arquivadoEm;
   const quando = arquivado
     ? `Arquivada ${ago(t.arquivadoEm)} · será apagada ${txtDias(diasRestantes(t.arquivadoEm))}`
-    : `${esc(t.autorNome)} abriu ${ago(t.criadoEm)}`;
+    : `${esc(t.autorNome)} abriu ${ago(t.criadoEm)}${t.status === "aberto" && ultimaAcao(t) ? " · " + ultimaAcao(t) : ""}`;
   const nConf = (t.confirmacoes || []).length;
+  const nomesConf = (t.confirmacoes || []).map(c => esc(c.nome)).join(", ");
   return `<li class="topico" tabindex="0" data-act="abrir" data-id="${t.id}" data-src="${arquivado ? "arq" : "ativo"}">
     ${avatar(t.autorNome, t.autorUid)}
     <div class="info"><div class="tit">${esc(t.titulo)}</div><div class="meta">${quando}</div></div>
     <div class="lado">
-      ${t.recusas ? `<span class="badge rec" title="Quantidade de vezes que o admin recusou a conclusão">${txtRecusas(t.recusas)}</span>` : ""}
-      ${t.status === "programado" ? `<span class="badge prog">Programado</span>` : ""}
-      ${t.status === "pendente" ? `<span class="badge pend">Aguardando aprovação</span>` : ""}
+      <span class="s-rec">${t.recusas ? `<span class="badge rec" title="Quantidade de vezes que o admin recusou a conclusão">${txtRecusas(t.recusas)}</span>` : ""}</span>
+      <span class="s-st">
+      ${t.status === "programado" ? `<span class="stat"><span class="badge prog">Programado</span>${t.programadoPor?.nome ? `<small title="Programado por ${esc(t.programadoPor.nome)}">por ${esc(t.programadoPor.nome)}</small>` : ""}</span>` : ""}
+      ${t.status === "pendente" ? `<span class="stat"><span class="badge pend">Aguardando aprovação</span>${nomesConf ? `<small title="Execução confirmada por ${nomesConf}">por ${nomesConf}</small>` : ""}</span>` : ""}
       ${arquivado ? `<span class="badge arq">Arquivada</span>` : ""}
-      <span class="badge ${t.urgencia}">${URG[t.urgencia]?.l || ""}</span>
+      </span>
+      <span class="badge ${t.urgencia} urg">${URG[t.urgencia]?.l || ""}</span>
       <span class="cont ${nConf ? "verde" : ""}" title="Confirmações de execução">${IC_OK}${nConf}</span>
-      <span class="cont" title="Respostas">${IC_MSG}${t.respostasCount || 0}</span>
+      <span class="cont c-resp" title="Respostas">${IC_MSG}${t.respostasCount || 0}</span>
     </div>
   </li>`;
 }
@@ -510,8 +529,8 @@ function renderModal(){
   let acoes = "";
   if (!arquivado) {
     if (!souAutor && t.status === "aberto") acoes += `<button class="btn ok" data-act="programar">Programado</button>`;
-    if (t.status === "programado") acoes += `<button class="btn ok" data-act="executar">Confirmar execução</button>`;
-    if (isAdmin && t.status === "programado") acoes += `<button class="btn" data-act="desprogramar">Desprogramar</button>`;
+    if (t.status === "programado" && visao === "programados") acoes += `<button class="btn ok" data-act="executar">Confirmar execução</button>`;
+    if (t.status === "programado" && visao === "programados") acoes += `<button class="btn" data-act="desprogramar">Desprogramar</button>`;
     if (isAdmin && t.status === "pendente") acoes += `<button class="btn ok" data-act="aprovar">Aprovar e arquivar</button><button class="btn" data-act="recusar">Recusar</button>`;
     if (isAdmin && t.status === "aberto") acoes += `<button class="btn" data-act="aprovar">Arquivar</button>`;
     if (souAutor) acoes += `<button class="btn" data-act="editar">Editar</button>`;
@@ -522,8 +541,10 @@ function renderModal(){
   let aviso = "";
   if (!arquivado && euConfirmei) aviso = `<div class="aviso neutro">Você confirmou a execução. ${t.status === "pendente" ? "Agora é só aguardar o admin." : ""}</div>`;
   else if (!arquivado && souAutor && t.status === "aberto") aviso = `<div class="aviso neutro">Outros usuários podem marcar esta publicação como programada.</div>`;
-  if (t.status === "programado") aviso += `<div class="aviso neutro">Programado${t.programadoPor?.nome ? " por " + esc(t.programadoPor.nome) : ""}. Confirme a execução quando ela for feita.</div>`;
-  if (t.status === "pendente") aviso += `<div class="aviso">Execução confirmada por ${conf.map(c => esc(c.nome)).join(", ")}. ${isAdmin ? "Aprove para arquivar ou recuse para voltar a aberta." : "Aguardando aprovação do admin."}</div>`;
+  if (t.status === "programado") aviso += `<div class="aviso neutro">${ultimaAcao(t) || "Programado"}. Confirme a execução quando ela for feita.</div>`;
+  if (t.status === "aberto" && t.desprogramadoPor?.nome) aviso += `<div class="aviso neutro">${ultimaAcao(t)}.</div>`;
+  if (t.status === "pendente" && t.programadoPor?.nome) aviso += `<div class="aviso neutro">Programado por ${esc(t.programadoPor.nome)} ${ago(t.programadoPor.em)}.</div>`;
+  if (t.status === "pendente") aviso += `<div class="aviso">Execução confirmada por ${conf.map(c => `${esc(c.nome)} ${ago(c.em)}`).join(", ")}. ${isAdmin ? "Aprove para arquivar ou recuse para voltar a aberta." : "Aguardando aprovação do admin."}</div>`;
   if (arquivado) aviso = `<div class="aviso neutro">Arquivada por ${esc(t.arquivadoPor || "admin")} ${ago(t.arquivadoEm)}. Será apagada ${txtDias(diasRestantes(t.arquivadoEm))}.</div>`;
   if (t.recusas) aviso += `<div class="aviso neutro">${txtRecusas(t.recusas)} pelo admin.</div>`;
 
@@ -597,11 +618,12 @@ async function acao(nome, el){
     if (!t) return;
     if (nome === "programar") {
       await updateDoc(ref, { status: "programado", programadoPor: { uid: user.uid, nome: nomeDe(user), em: Date.now() } });
+      fecharModais();
       toast("Publicação programada.");
     }
     else if (nome === "desprogramar") {
-      if (!isAdmin) return;
-      await updateDoc(ref, { status: "aberto", programadoPor: deleteField() });
+      await updateDoc(ref, { status: "aberto", programadoPor: deleteField(), desprogramadoPor: { uid: user.uid, nome: nomeDe(user), em: Date.now() } });
+      fecharModais();
       toast("Publicação desprogramada. Ela voltou para as abertas.");
     }
     else if (nome === "executar") {
@@ -614,7 +636,7 @@ async function acao(nome, el){
       arq.carregado = false; toast("Publicação arquivada.");
     }
     else if (nome === "recusar") {
-      await updateDoc(ref, { status: "aberto", confirmacoes: [], programadoPor: deleteField(), recusas: increment(1), recusadoEm: Date.now() });
+      await updateDoc(ref, { status: "aberto", confirmacoes: [], programadoPor: deleteField(), desprogramadoPor: deleteField(), recusas: increment(1), recusadoEm: Date.now() });
       toast("Recusado. A publicação voltou para aberta.");
     }
     else if (nome === "desarquivar") {
