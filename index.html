@@ -290,6 +290,12 @@ function ago(ms){
   const d = Math.floor(h / 24); if (d < 30) return `há ${d} ${d === 1 ? "dia" : "dias"}`;
   return new Date(ms).toLocaleDateString("pt-BR");
 }
+function dataHora(ms){
+  if (!ms) return "";
+  const d = new Date(ms);
+  return d.toLocaleDateString("pt-BR") + " às " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+function txtRecusas(n){ return n === 1 ? "Recusada 1 vez" : `Recusada ${n} vezes`; }
 function diasRestantes(arquivadoEm){ return Math.max(0, Math.ceil((arquivadoEm + DIAS_ARQUIVO * DIA_MS - Date.now()) / DIA_MS)); }
 function txtDias(n){ return n === 0 ? "hoje" : n === 1 ? "em 1 dia" : `em ${n} dias`; }
 function corAvatar(txt){ let h = 0; for (const c of String(txt)) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${h} 45% 45%)`; }
@@ -474,12 +480,13 @@ function linha(t){
   const arquivado = !!t.arquivadoEm;
   const quando = arquivado
     ? `Arquivada ${ago(t.arquivadoEm)} · será apagada ${txtDias(diasRestantes(t.arquivadoEm))}`
-    : `${esc(t.autorNome)} abriu ${ago(t.criadoEm)}`;
+    : `${esc(t.autorNome)} abriu ${ago(t.criadoEm)} · ${dataHora(t.criadoEm)}`;
   const nConf = (t.confirmacoes || []).length;
   return `<li class="topico" tabindex="0" data-act="abrir" data-id="${t.id}" data-src="${arquivado ? "arq" : "ativo"}">
     ${avatar(t.autorNome, t.autorUid)}
     <div class="info"><div class="tit">${esc(t.titulo)}</div><div class="meta">${quando}</div></div>
     <div class="lado">
+      ${t.recusas ? `<span class="badge rec" title="Quantidade de vezes que o admin recusou a conclusão">${txtRecusas(t.recusas)}</span>` : ""}
       ${t.status === "pendente" ? `<span class="badge pend">Aguardando aprovação</span>` : ""}
       ${arquivado ? `<span class="badge arq">Arquivada</span>` : ""}
       <span class="badge ${t.urgencia}">${URG[t.urgencia]?.l || ""}</span>
@@ -513,12 +520,13 @@ function renderModal(){
   if (!arquivado && euConfirmei) aviso = `<div class="aviso neutro">Você confirmou a conclusão. ${t.status === "pendente" ? "Agora é só aguardar o admin." : ""}</div>`;
   else if (!arquivado && souAutor) aviso = `<div class="aviso neutro">Outros usuários podem confirmar a conclusão desta publicação.</div>`;
   if (t.status === "pendente") aviso += `<div class="aviso">Confirmada por ${conf.map(c => esc(c.nome)).join(", ")}. ${isAdmin ? "Aprove para arquivar ou recuse para voltar a aberta." : "Aguardando aprovação do admin."}</div>`;
+  if (t.recusas && !arquivado) aviso += `<div class="aviso neutro">${txtRecusas(t.recusas)} pelo admin.</div>`;
   if (arquivado) aviso = `<div class="aviso neutro">Arquivada por ${esc(t.arquivadoPor || "admin")} ${ago(t.arquivadoEm)}. Será apagada ${txtDias(diasRestantes(t.arquivadoEm))}.</div>`;
 
   $("#m-topico-box").innerHTML = `
     <div class="topo"><h3 id="mt-tit">${esc(t.titulo)}</h3><button class="fechar" data-act="fechar" aria-label="Fechar">×</button></div>
     <div class="corpo-m">
-      <div class="quem">${avatar(t.autorNome, t.autorUid, true)}<span><b>${esc(t.autorNome)}</b> publicou ${ago(t.criadoEm)}${t.editadoEm ? " · editada" : ""}</span>
+      <div class="quem">${avatar(t.autorNome, t.autorUid, true)}<span><b>${esc(t.autorNome)}</b> publicou em ${dataHora(t.criadoEm)}${t.editadoEm ? " · editada" : ""}</span>
         <span class="badge ${t.urgencia}" style="margin-left:auto">Urgência ${URG[t.urgencia]?.l.toLowerCase()}</span></div>
       <div class="desc">${esc(t.descricao)}</div>
       ${aviso}
@@ -593,7 +601,7 @@ async function acao(nome, el){
       arq.carregado = false; toast("Publicação arquivada.");
     }
     else if (nome === "recusar") {
-      await updateDoc(ref, { status: "aberto", confirmacoes: [] });
+      await updateDoc(ref, { status: "aberto", confirmacoes: [], recusas: increment(1), recusadoEm: Date.now() });
       toast("Recusado. A publicação voltou para aberta.");
     }
     else if (nome === "excluir") {
