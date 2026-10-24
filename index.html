@@ -4,168 +4,307 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fórum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --laranja:#e7622c; --laranja-esc:#c94e1b; --slate:#4d698e; --texto:#2b3440; --suave:#6b7a90;
-  --linha:#e6ebf1; --fundo:#fff; --fundo2:#f4f6f9; --hover:#f7f9fb;
-  --max:#d92d20; --alta:#e8661a; --media:#a87500; --baixa:#26864f;
-  --raio:6px;
+  --tinta:#17142b; --marca:#5b3df5; --marca-esc:#4528d6; --marca-clara:#efecff;
+  --suave:#6a6784; --linha:#e4e2ef; --fundo:#fff; --fundo2:#f6f5fb; --hover:#faf9ff;
+  --max:#e0262b; --alta:#f07a12; --media:#d9a300; --baixa:#1f9d55;
+  --max-t:#c01d22; --alta-t:#b4560a; --media-t:#8a6600; --baixa-t:#177a42;
+  --max-bg:#fdecec; --alta-bg:#fff0df; --media-bg:#fff6d6; --baixa-bg:#e5f6ec;
+  --raio:8px;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--texto);background:var(--fundo)}
+body{font:15px/1.5 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--tinta);background:var(--fundo2);-webkit-font-smoothing:antialiased}
+/* sem cursor "|" nem seleção de texto na interface; só nos campos e nos textos que vale copiar */
+body{-webkit-user-select:none;user-select:none;caret-color:transparent;-webkit-tap-highlight-color:transparent}
+input,textarea{-webkit-user-select:text;user-select:text;caret-color:auto}
+.desc,.resp .txt{-webkit-user-select:text;user-select:text}
 body.carregando #login,body.carregando #espera,body.carregando #app{display:none}
 button{font:inherit;cursor:pointer}
-:focus-visible{outline:2px solid var(--laranja);outline-offset:2px}
+:focus-visible{outline:2px solid var(--marca);outline-offset:2px}
 .oculto{display:none!important}
 
-/* ---------- login / espera ---------- */
-#login,#espera{min-height:100vh;display:grid;place-items:center;background:var(--fundo2);padding:20px}
-.login-box{width:100%;max-width:380px;background:#fff;border:1px solid var(--linha);border-radius:10px;padding:28px}
-.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:22px;color:var(--laranja);letter-spacing:-.5px}
-.logo svg{width:28px;height:28px}
-.login-box h1{margin:18px 0 4px;font-size:18px}
-.login-box p{margin:0 0 18px;color:var(--suave);font-size:14px}
-label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+/* ---------- marca ---------- */
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:27px;line-height:1;color:var(--tinta);letter-spacing:-.035em;font-variation-settings:"wdth" 82}
+.logo svg{width:28px;height:28px;flex:none}
+
+/* ---------- login / espera: tela dividida ---------- */
+#login,#espera{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);background:#fff}
+.login-lado{background:var(--marca);color:#fff;padding:48px 56px;display:flex;flex-direction:column;justify-content:space-between;gap:40px;overflow:hidden}
+.login-lado .logo{color:#fff}
+.login-lado h2{margin:0;font-size:clamp(32px,3.6vw,52px);line-height:1.05;letter-spacing:-.035em;font-weight:800;max-width:10em;font-variation-settings:"wdth" 88}
+.barras{display:flex;align-items:flex-end;gap:14px;height:230px}
+.barras i{display:block;flex:1;max-width:64px;border-radius:12px 12px 4px 4px}
+.login-box{width:100%;max-width:410px;align-self:center;justify-self:center;padding:32px}
+.login-box .logo{display:none}
+.login-box h1{margin:0 0 4px;font-size:30px;letter-spacing:-.03em;font-weight:800}
+.login-box p{margin:0 0 20px;color:var(--suave);font-size:16px}
+label{display:block;font-size:14px;font-weight:700;margin:14px 0 5px}
 input[type=text],input[type=email],input[type=password],textarea{
-  width:100%;padding:9px 11px;border:1px solid #d3dbe5;border-radius:var(--raio);font:inherit;color:inherit;background:#fff}
-textarea{resize:vertical;min-height:110px}
-input:focus,textarea:focus{border-color:var(--laranja);outline:none;box-shadow:0 0 0 3px #e7622c22}
-.btn{border:0;border-radius:var(--raio);padding:9px 16px;font-weight:600;background:#e8edf3;color:var(--slate)}
-.btn:hover{background:#dce3ec}
-.btn.prim{background:var(--laranja);color:#fff}
-.btn.prim:hover{background:var(--laranja-esc)}
-.btn.ok{background:var(--baixa);color:#fff}
-.btn.ok:hover{background:#1d6d3f}
-.btn.perigo{background:#fdeceb;color:var(--max)}
-.btn.perigo:hover{background:#fbd9d6}
-.btn.peq{padding:6px 12px;font-size:13px}
-.btn.larg{width:100%;margin-top:18px;padding:11px}
+  width:100%;padding:11px 13px;border:1.5px solid #d9d6e8;border-radius:var(--raio);font:inherit;color:inherit;background:#fff}
+textarea{resize:vertical;min-height:120px;line-height:1.55}
+input:focus,textarea:focus{border-color:var(--marca);outline:none;box-shadow:0 0 0 4px #5b3df522}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;border:1.5px solid #d9d6e8;border-radius:var(--raio);padding:8px 18px;font-weight:700;background:#fff;color:var(--tinta)}
+.btn:hover{background:var(--fundo2);border-color:#c9c5de}
+.btn.prim{background:var(--marca);border-color:var(--marca);color:#fff}
+.btn.prim:hover{background:var(--marca-esc);border-color:var(--marca-esc)}
+.btn.ok{background:var(--baixa);border-color:var(--baixa);color:#fff}
+.btn.ok:hover{background:#177a42;border-color:#177a42}
+.btn.perigo{background:var(--max-bg);border-color:#f5c2c3;color:var(--max-t)}
+.btn.perigo:hover{background:#fbd8d9}
+.btn.peq{min-height:34px;padding:5px 13px;font-size:13px}
+.btn.larg{width:100%;margin-top:22px;min-height:46px;font-size:16px}
 .btn[disabled]{opacity:.55;cursor:default}
-.troca{margin-top:14px;text-align:center;font-size:14px;color:var(--suave)}
-.troca button{background:none;border:0;color:var(--laranja);font-weight:600;padding:0}
-.erro{margin-top:12px;color:var(--max);font-size:13px;min-height:1em}
+.troca{margin-top:18px;text-align:center;font-size:14px;color:var(--suave)}
+.troca button{background:none;border:0;color:var(--marca);font-weight:700;padding:0;text-decoration:underline;text-underline-offset:3px}
+.erro{margin-top:12px;color:var(--max-t);font-size:14px;min-height:1em}
 
-/* ---------- topo ---------- */
-header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--linha);height:56px;display:flex;align-items:center;gap:18px;padding:0 20px}
-.busca{flex:1;max-width:340px;margin-left:auto}
-.busca input{background:#eef1f6;border-color:transparent;padding:8px 12px}
-.usuario{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--slate)}
-.usuario .sair{background:none;border:0;color:var(--suave);font-size:13px;font-weight:500;padding:4px 6px}
-.usuario .sair:hover{color:var(--laranja)}
-.tag-admin{font-size:11px;font-weight:700;background:var(--texto);color:#fff;border-radius:4px;padding:1px 6px}
+/* ---------- estrutura: menu lateral + conteúdo ---------- */
+#app{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh}
+.lateral{position:sticky;top:0;align-self:start;height:100vh;display:flex;flex-direction:column;gap:14px;padding:22px 14px 14px;background:var(--tinta);color:#fff;overflow-y:auto;z-index:40;scrollbar-width:thin;scrollbar-color:#ffffff30 transparent}
+.lateral .logo{color:#fff;padding:2px 10px 6px;font-size:27px}
+.lateral :focus-visible{outline-color:#fff}
+.lateral .nova{width:100%;min-height:46px;border-radius:12px;font-size:15px;box-shadow:0 8px 22px #5b3df559}
+.lateral .nova svg{width:18px;height:18px}
 
-/* ---------- layout ---------- */
-.corpo{max-width:1120px;margin:0 auto;padding:24px 20px 60px;display:grid;grid-template-columns:216px 1fr;gap:32px}
-aside .btn.prim{width:100%;padding:11px;font-size:15px;margin-bottom:18px}
-nav .item{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;text-align:left;padding:8px 10px;border-radius:var(--raio);color:var(--slate);font-weight:600}
-nav .item:hover{background:var(--fundo2)}
-nav .item.ativo{color:var(--laranja)}
-nav .item .n{margin-left:auto;font-size:12px;font-weight:700;background:#e8edf3;border-radius:10px;padding:1px 8px;color:var(--slate)}
-nav .item .n.alerta{background:var(--laranja);color:#fff}
-nav .item .ponto{width:10px;height:10px;border-radius:50%;margin:0 4px}
-nav hr{border:0;border-top:1px solid var(--linha);margin:10px 0}
+nav{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0}
+nav .grupo{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8b87ab;padding:18px 12px 6px}
+nav .grupo:first-child{padding-top:8px}
+nav .item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;padding:10px 12px;border-radius:10px;color:#cdcae5;font-weight:600;font-size:15px;position:relative}
+nav .item:hover{background:#ffffff14;color:#fff}
+nav .item.ativo{background:var(--marca);color:#fff;box-shadow:0 6px 16px #5b3df547}
+nav .item .ic{width:20px;height:20px;flex:none;display:grid;place-items:center}
+nav .item .ic svg{width:19px;height:19px}
+nav .item .rot{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+nav .item .n{font-size:12px;font-weight:700;min-width:26px;text-align:center;padding:1px 8px;border-radius:999px;background:#ffffff1c;color:#e4e2f5;font-variant-numeric:tabular-nums}
+nav .item.ativo .n{background:#ffffff33;color:#fff}
+nav .item .n.alerta{background:var(--max);color:#fff}
+nav .item .ponto{width:10px;height:10px;border-radius:50%}
 
-.barra{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.barra h2{margin:0;font-size:17px}
-.barra .sub{color:var(--suave);font-size:13px}
-.barra .btn{margin-left:auto;padding:6px 12px;font-size:13px}
+.usuario{display:flex;align-items:center;gap:10px;padding:10px 10px 10px 12px;border-radius:14px;background:#ffffff10;font-size:14px;font-weight:700;margin-top:6px}
+.usuario .quem-u{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;line-height:1.25}
+.usuario .nome-u{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
+.tag-admin{font-size:11px;font-weight:700;background:#ffffff24;color:#ddd6ff;border-radius:999px;padding:0 8px;margin-top:2px}
+.usuario .sair{flex:none;background:none;border:0;color:#a9a5c8;padding:8px;border-radius:9px;display:grid;place-items:center}
+.usuario .sair svg{width:18px;height:18px}
+.usuario .sair:hover{color:#fff;background:#ffffff1c}
 
-.banner{display:flex;align-items:center;gap:12px;margin-bottom:14px;border-radius:var(--raio);padding:10px 14px;font-size:14px;background:#fdeee6;color:#8a3410;border:1px solid #f6cdb8}
-.banner .btn{margin-left:auto;padding:5px 12px;font-size:13px}
+.conteudo{min-width:0;display:flex;flex-direction:column}
+header{position:sticky;top:0;z-index:20;height:68px;display:flex;align-items:center;gap:12px;padding:0 40px;background:#f6f5fbe6;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--linha)}
+header .logo,.hamb,.fab,.vel{display:none}
+.hamb{width:42px;height:42px;flex:none;align-items:center;justify-content:center;background:#fff;border:1.5px solid var(--linha);border-radius:10px;color:var(--tinta)}
+.hamb svg{width:20px;height:20px}
+.busca{flex:1;max-width:540px}
+.busca input{background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236a6784' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 14px 50%;background-size:17px;border-color:var(--linha);padding:10px 14px 10px 42px;border-radius:999px}
+.busca input:focus{border-color:var(--marca)}
 
-.lista{list-style:none;margin:0;padding:0}
-.topico{display:flex;align-items:center;gap:14px;padding:13px 10px;border-bottom:1px solid var(--linha);cursor:pointer;border-radius:var(--raio)}
-.topico:hover{background:var(--hover)}
-.topico.sem-clique{cursor:default}
-.topico.sem-clique:hover{background:none}
+/* ---------- conteúdo ---------- */
+.corpo{width:100%;max-width:1060px;margin:0 auto;padding:10px 40px 90px}
+main{min-width:0}
+
+.barra{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 14px;margin:22px 0 18px}
+.barra h2{margin:0;font-size:32px;font-weight:800;letter-spacing:-.035em;font-variation-settings:"wdth" 90}
+.barra .sub{color:var(--suave);font-size:15px}
+.barra .btn{margin-left:auto;align-self:center;padding:5px 13px;font-size:13px;min-height:34px}
+
+.banner{display:flex;align-items:center;gap:12px;margin:18px 0 0;border-radius:12px;padding:12px 16px;font-size:15px;background:var(--marca-clara);color:var(--marca-esc);font-weight:600}
+.banner .btn{margin-left:auto;padding:5px 14px;font-size:13px;min-height:34px}
+
+/* ---------- lista de tickets: o medidor de urgência é a âncora ---------- */
+.lista{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.topico{display:flex;align-items:center;gap:16px;background:#fff;border:1.5px solid var(--linha);border-radius:16px;overflow:hidden;cursor:pointer;padding:0 20px 0 0;min-height:84px;box-shadow:0 1px 2px #17142b0d;transition:transform .15s,box-shadow .15s,border-color .15s}
+.topico:hover{border-color:var(--marca);box-shadow:0 10px 26px #5b3df61f;transform:translateY(-1px)}
+.topico:focus-visible{outline-offset:2px}
+.topico.sem-clique{padding:12px 18px;cursor:default}
+.topico.sem-clique:hover{border-color:var(--linha);box-shadow:0 1px 2px #17142b0d;transform:none}
+.u-bloco{align-self:stretch;flex:none;width:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-size:13px;font-weight:700}
+.u-maxima .u-bloco{background:var(--max);color:#fff}
+.u-alta .u-bloco{background:var(--alta-bg);color:var(--alta-t)}
+.u-media .u-bloco{background:var(--media-bg);color:var(--media-t)}
+.u-baixa .u-bloco{background:var(--baixa-bg);color:var(--baixa-t)}
+.med{display:flex;align-items:flex-end;gap:3px;height:22px}
+.med i{display:block;width:5px;border-radius:2px;background:#17142b22}
+.med i:nth-child(1){height:8px}.med i:nth-child(2){height:13px}.med i:nth-child(3){height:18px}.med i:nth-child(4){height:22px}
+.u-maxima .med i{background:#ffffff55}
+.u-maxima .med i.on{background:#fff}
+.u-alta .med i.on{background:var(--alta)}
+.u-media .med i.on{background:var(--media)}
+.u-baixa .med i.on{background:var(--baixa)}
 .avatar{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px}
 .avatar.p{width:30px;height:30px;font-size:12px}
-.topico .info{flex:1;min-width:0}
-.topico .tit{font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.topico .meta{font-size:13px;color:var(--suave)}
-.topico .lado{display:grid;grid-template-columns:120px 150px 64px 38px 38px;align-items:center;gap:12px;flex:none}
-.lado .s-rec{display:flex;justify-content:flex-end}
+.meta .avatar.p{width:20px;height:20px;font-size:11px;flex:none}
+.topico .info{flex:1;min-width:0;padding:14px 0}
+.topico.sem-clique .info{padding:0}
+.topico .tit{font-size:18px;font-weight:700;letter-spacing:-.015em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topico .meta{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--suave);margin-top:4px;line-height:1.3}
+.topico .lado{display:flex;align-items:center;gap:12px;flex:none}
+.lado .s-rec:empty,.lado .s-st:empty{display:none}
+.lado .s-rec{display:flex}
 .lado .s-st{display:flex;justify-content:center}
-.lado .badge.urg{justify-self:stretch}
-.stat{position:relative;display:flex;justify-content:center;width:150px}
-.badge.urg{min-width:62px;text-align:center}
+.lado .cont{min-width:38px}
+.stat{position:relative;display:flex;justify-content:center;min-width:150px}
 .stat small{position:absolute;top:100%;left:0;right:0;margin-top:3px;text-align:center;font-size:11px;line-height:1.2;color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cont{display:flex;align-items:center;gap:4px;color:var(--suave);font-size:14px;min-width:34px}
-.cont svg{width:16px;height:16px}
-.cont.verde{color:var(--baixa);font-weight:600}
-.badge{font-size:12px;font-weight:700;border-radius:4px;padding:2px 8px;color:#fff;white-space:nowrap}
-.badge.maxima{background:var(--max)}.badge.alta{background:var(--alta)}.badge.media{background:var(--media)}.badge.baixa{background:var(--baixa)}
-.badge.pend{background:#e8edf3;color:var(--slate)}
-.badge.arq{background:#e8edf3;color:var(--suave)}
-.badge.rec{background:#fdeceb;color:var(--max)}
-.badge.prog{background:#e3f1ea;color:#1f6b45}
-.vazio{text-align:center;padding:60px 20px;color:var(--suave)}
-.vazio strong{display:block;color:var(--texto);font-size:16px;margin-bottom:4px}
+.cont{display:flex;align-items:center;gap:5px;color:var(--suave);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.cont svg{width:17px;height:17px}
+.cont.verde{color:var(--baixa-t);font-weight:700}
 
-/* ---------- modal ---------- */
-.fundo-modal{position:fixed;inset:0;background:#1d2733aa;z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
-.modal{background:#fff;border-radius:10px;width:100%;max-width:680px;box-shadow:0 20px 50px #0004;animation:sobe .14s ease-out}
-@keyframes sobe{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
-.modal .topo{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 0}
-.modal h3{margin:0;font-size:20px;line-height:1.3;flex:1}
-.fechar{background:none;border:0;font-size:24px;line-height:1;color:var(--suave);padding:0 4px}
-.modal .corpo-m{padding:14px 22px 22px}
-.modal .quem{display:flex;align-items:center;gap:10px;color:var(--suave);font-size:13px;margin:10px 0 14px}
-.modal .quem b{color:var(--texto)}
-.desc{white-space:pre-wrap;word-break:break-word;background:var(--fundo2);border-radius:var(--raio);padding:14px 16px}
-.acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-.aviso{margin-top:16px;border-radius:var(--raio);padding:11px 14px;font-size:14px;background:#fff6e5;color:#7a5600}
+.badge{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:700;border-radius:999px;padding:3px 11px;white-space:nowrap}
+.badge.maxima::before,.badge.alta::before,.badge.media::before,.badge.baixa::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.badge.maxima{background:var(--max);color:#fff}
+.badge.alta{background:var(--alta-bg);color:var(--alta-t)}
+.badge.media{background:var(--media-bg);color:var(--media-t)}
+.badge.baixa{background:var(--baixa-bg);color:var(--baixa-t)}
+.badge.pend{background:var(--marca-clara);color:var(--marca-esc)}
+.badge.arq{background:#ebe9f3;color:var(--suave)}
+.badge.rec{background:var(--max-bg);color:var(--max-t)}
+.badge.prog{background:#dff3f3;color:#0b6468}
+.vazio{text-align:center;padding:60px 20px;color:var(--suave);border:2px dashed #d9d6e8;border-radius:16px;background:#ffffff80}
+.vazio strong{display:block;color:var(--tinta);font-size:19px;letter-spacing:-.02em;margin-bottom:4px}
+.vazio .btn{margin-top:16px}
+
+/* ---------- painel lateral ---------- */
+.fundo-modal{position:fixed;inset:0;background:#17142b99;z-index:50;display:flex;justify-content:flex-end;align-items:stretch;padding:0;overflow-y:auto}
+.modal{background:#fff;width:100%;max-width:600px;min-height:100%;animation:desliza .22s ease-out;border-top:6px solid var(--urg,var(--marca))}
+@keyframes desliza{from{transform:translateX(36px);opacity:.3}to{transform:none;opacity:1}}
+@keyframes sobe{from{transform:translateY(14px);opacity:.4}to{transform:none;opacity:1}}
+.modal .topo{display:flex;align-items:flex-start;gap:12px;padding:24px 28px 0}
+.modal h3{margin:0;font-size:26px;line-height:1.2;flex:1;font-weight:800;letter-spacing:-.03em}
+.fechar{background:none;border:0;font-size:28px;line-height:1;color:var(--suave);padding:2px 9px;border-radius:8px}
+.fechar:hover{background:var(--fundo2);color:var(--tinta)}
+.modal .corpo-m{padding:14px 28px 36px}
+.modal .quem{display:flex;align-items:center;gap:10px;color:var(--suave);font-size:14px;margin:10px 0 18px}
+.modal .quem b{color:var(--tinta)}
+.desc{white-space:pre-wrap;word-break:break-word;background:var(--fundo2);border-radius:12px;padding:18px 20px;line-height:1.65;font-size:16px}
+.acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.aviso{margin-top:16px;border-radius:12px;padding:13px 16px;font-size:14px;background:#fff6d6;color:#6b5000}
 .aviso.neutro{background:var(--fundo2);color:var(--suave)}
-.resp-tit{margin:24px 0 4px;font-size:14px;font-weight:700;color:var(--slate)}
-.resp{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--linha)}
-.resp .nome{font-weight:600;font-size:14px}
+.resp-tit{margin:30px 0 4px;padding-top:20px;border-top:1.5px solid var(--linha);font-size:17px;font-weight:800;letter-spacing:-.02em}
+.resp{display:flex;gap:10px;padding:14px 0;border-bottom:1px solid var(--linha)}
+.resp:last-child{border-bottom:0}
+.resp .nome{font-weight:700;font-size:14px}
 .resp .nome span{font-weight:400;color:var(--suave);font-size:12px;margin-left:6px}
 .resp .txt{white-space:pre-wrap;word-break:break-word}
 .nova-resp{margin-top:14px}
-.nova-resp textarea{min-height:70px}
-.nova-resp .btn{margin-top:8px}
+.nova-resp textarea{min-height:80px}
+.nova-resp .btn{margin-top:10px}
+.modal .vazio{border:0}
 .urg-opcoes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .urg-opcoes input{position:absolute;opacity:0}
-.urg-opcoes label{margin:0;text-align:center;border:2px solid var(--linha);border-radius:var(--raio);padding:9px 4px;cursor:pointer;font-weight:700;font-size:14px;color:var(--suave)}
-.urg-opcoes input:checked+label.maxima{border-color:var(--max);background:#fdeceb;color:var(--max)}
-.urg-opcoes input:checked+label.alta{border-color:var(--alta);background:#fff0e5;color:var(--alta)}
-.urg-opcoes input:checked+label.media{border-color:var(--media);background:#fff6dd;color:var(--media)}
-.urg-opcoes input:checked+label.baixa{border-color:var(--baixa);background:#e8f6ee;color:var(--baixa)}
-.urg-opcoes input:focus-visible+label{outline:2px solid var(--laranja);outline-offset:2px}
+.urg-opcoes label{margin:0;text-align:center;border:2px solid var(--linha);border-radius:var(--raio);padding:11px 4px;cursor:pointer;font-weight:700;font-size:14px;color:var(--suave)}
+.urg-opcoes label:hover{border-color:#cfcbe3}
+.urg-opcoes input:checked+label.maxima{border-color:var(--max);background:var(--max);color:#fff}
+.urg-opcoes input:checked+label.alta{border-color:var(--alta);background:var(--alta-bg);color:var(--alta-t)}
+.urg-opcoes input:checked+label.media{border-color:var(--media);background:var(--media-bg);color:var(--media-t)}
+.urg-opcoes input:checked+label.baixa{border-color:var(--baixa);background:var(--baixa-bg);color:var(--baixa-t)}
+.urg-opcoes input:focus-visible+label{outline:2px solid var(--marca);outline-offset:2px}
 .contador{font-size:12px;color:var(--suave);text-align:right;margin-top:2px}
-.rodape-form{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.rodape-form{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}
 
-#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--texto);color:#fff;padding:10px 18px;border-radius:var(--raio);font-size:14px;z-index:99;opacity:0;pointer-events:none;transition:opacity .2s}
-#toast.mostra{opacity:1}
+#toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,8px);background:var(--tinta);color:#fff;padding:12px 22px;border-radius:999px;font-size:14px;font-weight:600;z-index:99;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+#toast.mostra{opacity:1;transform:translate(-50%,0)}
 
-@media (max-width:760px){
-  .corpo{grid-template-columns:1fr;gap:14px;padding:14px 12px 60px}
-  nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
-  nav .item{width:auto;white-space:nowrap;background:var(--fundo2)}
-  nav .item.ativo{background:#fdeee6}
-  nav hr{display:none}
-  header{padding:0 12px;gap:10px}
-  .busca{max-width:none}
-  .usuario .nome-u{display:none}
-  .topico .lado{display:flex}
-  .lado .s-rec:empty,.lado .s-st:empty{display:none}
-  .lado .cont.c-resp{display:none}
-  .stat{width:auto;flex-direction:column;align-items:center}
-  .stat small{position:static;margin-top:2px}
-  .topico .tit{white-space:normal}
-  .topico.sem-clique{flex-wrap:wrap}
+@media (max-width:860px){
+  #login,#espera{grid-template-columns:1fr}
+  .login-lado{display:none}
+  .login-box .logo{display:flex;margin-bottom:26px}
+  #login,#espera{background:var(--fundo2)}
+  .login-box{background:#fff;border-radius:16px;padding:28px 24px;margin:20px;width:calc(100% - 40px)}
 }
-@media (prefers-reduced-motion:reduce){.modal{animation:none}#toast{transition:none}}
+@media (max-width:960px){
+  #app{display:block}
+  .lateral{position:fixed;left:0;top:0;bottom:0;width:288px;max-width:86vw;transform:translateX(-102%);transition:transform .22s ease-out;box-shadow:none}
+  #app.menu-aberto .lateral{transform:none;box-shadow:12px 0 40px #17142b66}
+  #app.menu-aberto .vel{display:block;position:fixed;inset:0;background:#17142b88;z-index:35}
+  header{padding:0 16px}
+  header .logo{display:flex;font-size:23px}
+  header .logo svg{width:24px;height:24px}
+  .hamb{display:inline-flex}
+  .busca{max-width:none}
+  .corpo{padding:6px 16px 100px}
+  .fab{display:inline-flex;position:fixed;right:16px;bottom:16px;z-index:30;padding:0 22px;min-height:52px;border-radius:26px;box-shadow:0 10px 24px #5b3df566}
+  .fab svg{width:18px;height:18px}
+}
+@media (max-width:640px){
+  header .logo span{display:none}
+}
+@media (max-width:760px){
+  .barra h2{font-size:26px}
+  .u-bloco{width:66px;font-size:12px}
+  .topico{display:grid;grid-template-columns:66px minmax(0,1fr);gap:0 14px;padding:0 14px 0 0;align-items:start}
+  .topico .u-bloco{grid-row:1 / 3;grid-column:1;align-self:stretch}
+  .topico .info{grid-column:2;padding:12px 0 6px}
+  .topico .tit{white-space:normal;font-size:17px}
+  .topico .lado{grid-column:2;padding:0 0 12px;gap:10px;flex-wrap:wrap}
+  .topico.sem-clique{display:flex;flex-wrap:wrap;gap:12px;padding:12px 14px}
+  .topico.sem-clique .lado{padding:0;flex-basis:100%}
+  .stat{min-width:0;flex-direction:column;align-items:center}
+  .stat small{position:static;margin-top:2px}
+  .fundo-modal{padding:28px 0 0}
+  .modal{margin-top:auto;min-height:0;border-radius:20px 20px 0 0;max-width:none;animation-name:sobe}
+  .modal .topo{padding:20px 20px 0}
+  .modal .corpo-m{padding:12px 20px 28px}
+  .modal h3{font-size:22px}
+  #toast{bottom:90px;max-width:calc(100% - 32px)}
+}
+@media (prefers-reduced-motion:reduce){.modal{animation:none}#toast{transition:none}.lateral,.topico{transition:none}}
+
+/* ---------- fonte dos títulos ---------- */
+.logo,.login-lado h2,.login-box h1,.barra h2,.topico .tit,.modal h3,.resp-tit,.vazio strong{font-family:"Plus Jakarta Sans","Bricolage Grotesque",system-ui,sans-serif;font-variation-settings:normal}
+.logo{font-weight:800;letter-spacing:-.04em;font-size:25px}
+.lateral .logo{font-size:25px}
+.login-lado h2{letter-spacing:-.03em;line-height:1.12}
+.login-box h1{letter-spacing:-.025em}
+.barra h2{font-size:28px;font-weight:800;letter-spacing:-.03em}
+.topico .tit{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.modal h3{font-size:24px;font-weight:800;letter-spacing:-.025em;line-height:1.25}
+.resp-tit{letter-spacing:-.01em}
+@media (max-width:760px){.barra h2{font-size:23px}.modal h3{font-size:21px}}
+
+/* ---------- fotos ---------- */
+.opc{font-weight:500;color:var(--suave);font-size:13px}
+.fotos-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.foto-prev{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:1.5px solid var(--linha);background:var(--fundo2)}
+.foto-prev img{width:100%;height:100%;object-fit:cover;display:block}
+.foto-prev.proc{display:grid;place-items:center;color:var(--suave);font-size:12px;font-weight:700;animation:pulsa 1.2s ease-in-out infinite}
+.foto-x{position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;border:0;background:#17142bcc;color:#fff;font-size:17px;line-height:1;display:grid;place-items:center;padding:0}
+.foto-x:hover{background:var(--max)}
+.foto-add{aspect-ratio:1;border:2px dashed #cfcbe3;border-radius:10px;background:#fff;color:var(--suave);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:700}
+.foto-add:hover{border-color:var(--marca);color:var(--marca);background:var(--hover)}
+.foto-add svg{width:26px;height:26px}
+.galeria{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:14px}
+.galeria .foto{aspect-ratio:4/3;border-radius:12px;overflow:hidden;padding:0;border:1.5px solid var(--linha);background:var(--fundo2);cursor:zoom-in}
+.galeria .foto img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s}
+.galeria .foto:hover img{transform:scale(1.05)}
+.galeria .foto.sk{cursor:default;animation:pulsa 1.2s ease-in-out infinite}
+@keyframes pulsa{50%{opacity:.5}}
+.lightbox{position:fixed;inset:0;z-index:70;background:#0d0b1cec;display:flex;align-items:center;justify-content:center;padding:60px 70px}
+.lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;-webkit-user-select:none;user-select:none}
+.lb-x,.lb-nav{position:absolute;background:#ffffff22;border:0;color:#fff;border-radius:50%;width:46px;height:46px;font-size:30px;line-height:1;display:grid;place-items:center;padding:0 0 3px}
+.lb-x:hover,.lb-nav:hover{background:#ffffff40}
+.lb-x{top:14px;right:14px}
+.lb-nav{top:50%;margin-top:-23px}
+.lb-nav.ant{left:14px}.lb-nav.prox{right:14px}
+.lb-cont{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:#d6d3ea;font-size:13px;font-weight:700}
+@media (max-width:760px){.lightbox{padding:60px 8px}.lb-nav.ant{left:6px}.lb-nav.prox{right:6px}}
 </style>
 </head>
 <body class="carregando">
 
 <!-- ================= LOGIN ================= -->
 <section id="login">
+  <div class="login-lado">
+    <div class="logo"><svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="18" width="5" height="8" rx="1.6" fill="#1f9d55"/><rect x="8" y="13" width="5" height="13" rx="1.6" fill="#d9a300"/><rect x="15" y="8" width="5" height="18" rx="1.6" fill="#f07a12"/><rect x="22" y="3" width="5" height="23" rx="1.6" fill="#e0262b"/></svg>Fórum</div>
+    <h2>Veja o que é urgente primeiro.</h2>
+    <div class="barras" aria-hidden="true"><i style="height:25%;background:#1f9d55"></i><i style="height:50%;background:#d9a300"></i><i style="height:75%;background:#f07a12"></i><i style="height:100%;background:#e0262b"></i></div>
+  </div>
   <div class="login-box">
     <div class="logo">
-      <svg viewBox="0 0 28 28" fill="currentColor" aria-hidden="true"><path d="M3 4h22v15H13l-6 5v-5H3z"/></svg>
+      <svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="18" width="5" height="8" rx="1.6" fill="#1f9d55"/><rect x="8" y="13" width="5" height="13" rx="1.6" fill="#d9a300"/><rect x="15" y="8" width="5" height="18" rx="1.6" fill="#f07a12"/><rect x="22" y="3" width="5" height="23" rx="1.6" fill="#e0262b"/></svg>
       Fórum
     </div>
     <h1 id="login-titulo">Entrar</h1>
@@ -188,9 +327,14 @@ nav hr{border:0;border-top:1px solid var(--linha);margin:10px 0}
 
 <!-- ================= AGUARDANDO APROVAÇÃO DO CADASTRO ================= -->
 <section id="espera" class="oculto">
+  <div class="login-lado">
+    <div class="logo"><svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="18" width="5" height="8" rx="1.6" fill="#1f9d55"/><rect x="8" y="13" width="5" height="13" rx="1.6" fill="#d9a300"/><rect x="15" y="8" width="5" height="18" rx="1.6" fill="#f07a12"/><rect x="22" y="3" width="5" height="23" rx="1.6" fill="#e0262b"/></svg>Fórum</div>
+    <h2>Veja o que é urgente primeiro.</h2>
+    <div class="barras" aria-hidden="true"><i style="height:25%;background:#1f9d55"></i><i style="height:50%;background:#d9a300"></i><i style="height:75%;background:#f07a12"></i><i style="height:100%;background:#e0262b"></i></div>
+  </div>
   <div class="login-box">
     <div class="logo">
-      <svg viewBox="0 0 28 28" fill="currentColor" aria-hidden="true"><path d="M3 4h22v15H13l-6 5v-5H3z"/></svg>
+      <svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="18" width="5" height="8" rx="1.6" fill="#1f9d55"/><rect x="8" y="13" width="5" height="13" rx="1.6" fill="#d9a300"/><rect x="15" y="8" width="5" height="18" rx="1.6" fill="#f07a12"/><rect x="22" y="3" width="5" height="23" rx="1.6" fill="#e0262b"/></svg>
       Fórum
     </div>
     <h1 id="e-titulo"></h1>
@@ -201,22 +345,29 @@ nav hr{border:0;border-top:1px solid var(--linha);margin:10px 0}
 
 <!-- ================= APP ================= -->
 <div id="app" class="oculto">
-  <header>
-    <div class="logo">
-      <svg viewBox="0 0 28 28" fill="currentColor" aria-hidden="true"><path d="M3 4h22v15H13l-6 5v-5H3z"/></svg>
-      Fórum
+  <aside class="lateral" id="lateral" aria-label="Menu principal">
+    <div class="logo"><svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="18" width="5" height="8" rx="1.6" fill="#1f9d55"/><rect x="8" y="13" width="5" height="13" rx="1.6" fill="#d9a300"/><rect x="15" y="8" width="5" height="18" rx="1.6" fill="#f07a12"/><rect x="22" y="3" width="5" height="23" rx="1.6" fill="#e0262b"/></svg>Fórum</div>
+    <button class="btn prim nova" data-act="novo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nova publicação</button>
+    <nav id="menu" aria-label="Filtros"></nav>
+    <div class="usuario">
+      <span id="u-av"></span>
+      <div class="quem-u"><span class="nome-u" id="u-nome"></span><span class="tag-admin oculto" id="u-admin">admin</span></div>
+      <button class="sair" data-act="sair" aria-label="Sair" title="Sair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
     </div>
-    <div class="busca"><input type="text" id="busca" placeholder="Buscar nas publicações carregadas" aria-label="Buscar"></div>
-    <div class="usuario"><span class="nome-u" id="u-nome"></span><span class="tag-admin oculto" id="u-admin">admin</span><button class="sair" data-act="sair">Sair</button></div>
-  </header>
+  </aside>
+  <div class="vel" data-act="menu-fechar"></div>
 
-  <div class="corpo">
-    <aside>
-      <button class="btn prim" data-act="novo">Nova publicação</button>
-      <nav id="menu" aria-label="Filtros"></nav>
-    </aside>
-    <main id="principal"></main>
+  <div class="conteudo">
+    <header>
+      <button class="hamb" data-act="menu" aria-label="Abrir menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <div class="logo"><svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="18" width="5" height="8" rx="1.6" fill="#1f9d55"/><rect x="8" y="13" width="5" height="13" rx="1.6" fill="#d9a300"/><rect x="15" y="8" width="5" height="18" rx="1.6" fill="#f07a12"/><rect x="22" y="3" width="5" height="23" rx="1.6" fill="#e0262b"/></svg><span>Fórum</span></div>
+      <div class="busca"><input type="text" id="busca" placeholder="Buscar nas publicações carregadas" aria-label="Buscar"></div>
+    </header>
+    <div class="corpo">
+      <main id="principal"></main>
+    </div>
   </div>
+  <button class="btn prim fab" data-act="novo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nova publicação</button>
 </div>
 
 <!-- ================= MODAIS ================= -->
@@ -236,6 +387,9 @@ nav hr{border:0;border-top:1px solid var(--linha);margin:10px 0}
       <label for="n-desc">Descrição</label>
       <textarea id="n-desc" maxlength="2000" required placeholder="Detalhes, endereço, o que precisa ser feito..."></textarea>
       <div class="contador"><span id="n-cont">0</span>/2000</div>
+      <label>Fotos <span class="opc">(opcional, até 4)</span></label>
+      <div class="fotos-form" id="n-fotos"></div>
+      <input type="file" id="n-arq" accept="image/*" multiple hidden>
       <div class="rodape-form">
         <button type="button" class="btn" data-act="fechar">Cancelar</button>
         <button type="submit" class="btn prim" id="n-enviar">Publicar</button>
@@ -246,6 +400,14 @@ nav hr{border:0;border-top:1px solid var(--linha);margin:10px 0}
 
 <div class="fundo-modal oculto" id="m-topico" role="dialog" aria-modal="true" aria-labelledby="mt-tit">
   <div class="modal" id="m-topico-box"></div>
+</div>
+
+<div class="lightbox oculto" id="lightbox" role="dialog" aria-modal="true" aria-label="Foto ampliada">
+  <button class="lb-x" data-act="foto-fechar" aria-label="Fechar">×</button>
+  <button class="lb-nav ant" id="lb-ant" data-act="foto-ant" aria-label="Foto anterior">‹</button>
+  <img id="lb-img" alt="">
+  <button class="lb-nav prox" id="lb-prox" data-act="foto-prox" aria-label="Próxima foto">›</button>
+  <div class="lb-cont" id="lb-cont"></div>
 </div>
 
 <div id="toast" role="status"></div>
@@ -339,6 +501,9 @@ let termo = "";
 let cur = null;                     // { id, src: "ativo" | "arq" }
 let editId = null;                  // id da publicação em edição (null = nova)
 let respostas = [], respostasCarregando = false;
+const MAX_FOTOS = 4;
+let fotos = [], fotosCarregando = false;      // fotos da publicação aberta (subcoleção, lida só ao abrir)
+let fotosForm = [], fotosRem = [], fotosProc = false, lbI = 0;   // fotos no formulário
 let unsub = null, unsubU = null, unsubPerfil = null, primeiraU = true;
 
 /* ============ LISTAS EM TEMPO REAL (só com a aba visível) ============ */
@@ -390,31 +555,59 @@ async function carregarArquivados(mais){
 }
 
 /* ============ APAGAR (publicação + respostas) ============ */
-async function apagarTopico(id, temRespostas){
-  const b = writeBatch(db);
-  if (temRespostas) {
-    const s = await getDocs(query(collection(db, "topicos", id, "respostas"), limit(450)));
+// Apaga todos os documentos de uma subcoleção (respostas ou fotos), em lotes
+async function apagarSub(id, nome){
+  for (;;) {
+    const s = await getDocs(query(collection(db, "topicos", id, nome), limit(400)));
+    if (s.empty) return;
+    const b = writeBatch(db);
     s.docs.forEach(d => b.delete(d.ref));
+    await b.commit();
+    if (s.size < 400) return;
   }
-  b.delete(doc(db, "topicos", id));
-  await b.commit();
 }
-// Admin: ao abrir o app, apaga as arquivadas há mais de 30 dias (0 leituras se não houver nenhuma)
+async function apagarTopico(id, temRespostas, temFotos){
+  if (temRespostas) await apagarSub(id, "respostas");
+  if (temFotos) await apagarSub(id, "fotos");        // as fotos ficam no Firestore: apagar o documento libera o espaço
+  await writeBatch(db).delete(doc(db, "topicos", id)).commit();
+}
+
+// Ao abrir o app (qualquer usuário aprovado), apaga as publicações arquivadas há mais de 30 dias,
+// junto com respostas e fotos. No máximo uma checagem a cada 6 horas por aparelho.
+const LIMPEZA_KEY = "forum-limpeza";
 async function limparVencidas(){
+  try { if (Date.now() - +(localStorage.getItem(LIMPEZA_KEY) || 0) < 6 * 3600 * 1000) return; } catch (e) {}
+  let total = 0;
   try {
-    const corte = Date.now() - DIAS_ARQUIVO * DIA_MS;
-    const snap = await getDocs(query(TOPICOS, where("arquivadoEm", ">", 0), where("arquivadoEm", "<", corte), limit(25)));
-    if (snap.empty) return;
-    for (const d of snap.docs) await apagarTopico(d.id, (d.data().respostasCount || 0) > 0);
-    arq.carregado = false;
-    toast(`${snap.size} publicação(ões) arquivada(s) há mais de ${DIAS_ARQUIVO} dias foram apagadas.`);
-    if (visao === "arquivados") carregarArquivados(false);
+    for (let r = 0; r < 4; r++) {
+      const corte = Date.now() - DIAS_ARQUIVO * DIA_MS;
+      const snap = await getDocs(query(TOPICOS, where("arquivadoEm", ">", 0), where("arquivadoEm", "<", corte), limit(25)));
+      if (snap.empty) break;
+      for (const d of snap.docs) { await apagarTopico(d.id, (d.data().respostasCount || 0) > 0, (d.data().fotosCount || 0) > 0); total++; }
+      if (snap.size < 25) break;
+    }
+    try { localStorage.setItem(LIMPEZA_KEY, String(Date.now())); } catch (e) {}
   } catch (e) { /* silencioso: tenta de novo na próxima abertura */ }
+  if (total) {
+    arq.carregado = false;
+    if (isAdmin) toast(`${total} publicação(ões) arquivada(s) há mais de ${DIAS_ARQUIVO} dias foram apagadas.`);
+    if (visao === "arquivados") carregarArquivados(false);
+  }
 }
 
 /* ============ RENDER ============ */
 const IC_MSG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>';
+const IC_FOTO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
 const IC_OK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
+const svgI = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICO = {
+  todos: svgI('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'),
+  programados: svgI('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+  pendentes: svgI('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  usuarios: svgI('<path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>'),
+  arquivados: svgI('<rect x="3" y="3" width="18" height="5" rx="1"/><path d="M5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4"/>')
+};
 
 function ordenar(a){ return a.slice().sort((x, y) => (x.urgenciaNivel - y.urgenciaNivel) || (y.criadoEm - x.criadoEm)); }
 
@@ -422,24 +615,29 @@ function render(){
   if (!user || !acesso) return;
   if (visao === "usuarios" && !isAdmin) visao = "todos";
   $("#u-nome").textContent = nomeDe(user);
+  $("#u-av").innerHTML = avatar(nomeDe(user), user.uid, true);
   $("#u-admin").classList.toggle("oculto", !isAdmin);
 
   const abertas = ativos.filter(t => t.status !== "pendente" && t.status !== "programado");   // programadas e aguardando aprovação só aparecem na aba própria
   const pend = ativos.filter(t => t.status === "pendente").length;
   const prog = ativos.filter(t => t.status === "programado").length;
   const novosUsu = usuarios.filter(u => u.status === "pendente").length;
-  const itemMenu = (id, rotulo, n, extra = "") => {
+  const itemMenu = (id, rotulo, n, ic) => {
     const alerta = (id === "pendentes" && pend && isAdmin) || (id === "usuarios" && n);
-    return `<button class="item ${visao === id ? "ativo" : ""}" data-act="visao" data-v="${id}">${extra}${rotulo}${n != null ? `<span class="n ${alerta ? "alerta" : ""}">${n}</span>` : ""}</button>`;
+    const ativo = visao === id;
+    return `<button class="item ${ativo ? "ativo" : ""}" data-act="visao" data-v="${id}"${ativo ? ' aria-current="page"' : ""}><span class="ic">${ic}</span><span class="rot">${rotulo}</span>${n != null ? `<span class="n ${alerta ? "alerta" : ""}">${n}</span>` : ""}</button>`;
   };
+  const grupo = t => `<div class="grupo">${t}</div>`;
   $("#menu").innerHTML =
-    itemMenu("todos", "Todas as publicações", abertas.length) +
-    itemMenu("programados", "Programado", prog) +
-    itemMenu("pendentes", "Aguardando aprovação", pend) +
-    (isAdmin ? itemMenu("usuarios", "Novos usuários", novosUsu) : "") +
-    itemMenu("arquivados", "Arquivadas", null) +
-    "<hr>" +
-    Object.entries(URG).map(([k, u]) => itemMenu("u:" + k, u.l, abertas.filter(t => t.urgencia === k).length, `<span class="ponto" style="background:${u.cor}"></span>`)).join("");
+    grupo("Publicações") +
+    itemMenu("todos", "Todas", abertas.length, ICO.todos) +
+    itemMenu("programados", "Programado", prog, ICO.programados) +
+    itemMenu("pendentes", "Aguardando", pend, ICO.pendentes) +
+    grupo("Urgência") +
+    Object.entries(URG).map(([k, u]) => itemMenu("u:" + k, u.l, abertas.filter(t => t.urgencia === k).length, `<span class="ponto" style="background:${u.cor}"></span>`)).join("") +
+    grupo("Gerenciar") +
+    (isAdmin ? itemMenu("usuarios", "Novos usuários", novosUsu, ICO.usuarios) : "") +
+    itemMenu("arquivados", "Arquivadas", null, ICO.arquivados);
 
   let h = "";
   if (isAdmin && novosUsu && visao !== "usuarios")
@@ -472,7 +670,7 @@ function render(){
 
   h += `<div class="barra"><h2>${titulo}</h2><span class="sub">${sub}</span>${visao === "arquivados" ? `<button class="btn" data-act="atualizar-arq">Atualizar</button>` : ""}</div>`;
   if (visao === "arquivados" && arq.carregando && !arq.itens.length) h += `<div class="vazio">Carregando…</div>`;
-  else if (!itens.length) h += `<div class="vazio"><strong>${q ? "Nada encontrado" : "Sem publicações"}</strong>${q ? "Tente outro termo." : vazio}</div>`;
+  else if (!itens.length) h += `<div class="vazio"><strong>${q ? "Nada encontrado" : "Sem publicações"}</strong>${q ? "Tente outro termo." : vazio}${!q && visao === "todos" ? `<div><button class="btn prim" data-act="novo">Criar publicação</button></div>` : ""}</div>`;
   else h += `<ul class="lista">${itens.map(linha).join("")}</ul>`;
   if (visao === "arquivados" && arq.carregado && !arq.fim) h += `<div style="text-align:center;margin-top:14px"><button class="btn" data-act="mais-arq" ${arq.carregando ? "disabled" : ""}>${arq.carregando ? "Carregando…" : "Carregar mais"}</button></div>`;
   $("#principal").innerHTML = h;
@@ -491,6 +689,8 @@ function linhaUsuario(u){
   </li>`;
 }
 
+const medidor = n => `<span class="med" aria-hidden="true">${[1, 2, 3, 4].map(i => `<i class="${i <= 5 - n ? "on" : ""}"></i>`).join("")}</span>`;
+
 function linha(t){
   const arquivado = !!t.arquivadoEm;
   const quando = arquivado
@@ -498,18 +698,18 @@ function linha(t){
     : `${esc(t.autorNome)} abriu ${ago(t.criadoEm)}${t.status === "aberto" && ultimaAcao(t) ? " · " + ultimaAcao(t) : ""}`;
   const nConf = (t.confirmacoes || []).length;
   const nomesConf = (t.confirmacoes || []).map(c => esc(c.nome)).join(", ");
-  return `<li class="topico" tabindex="0" data-act="abrir" data-id="${t.id}" data-src="${arquivado ? "arq" : "ativo"}">
-    ${avatar(t.autorNome, t.autorUid)}
-    <div class="info"><div class="tit">${esc(t.titulo)}</div><div class="meta">${quando}</div></div>
+  const nivel = t.urgenciaNivel || URG[t.urgencia]?.n || 3;
+  const stProg = t.status === "programado" ? `<span class="stat"><span class="badge prog">Programado</span>${t.programadoPor?.nome ? `<small title="Programado por ${esc(t.programadoPor.nome)}">por ${esc(t.programadoPor.nome)}</small>` : ""}</span>` : "";
+  const stPend = t.status === "pendente" ? `<span class="stat"><span class="badge pend">Aguardando aprovação</span>${nomesConf ? `<small title="Execução confirmada por ${nomesConf}">por ${nomesConf}</small>` : ""}</span>` : "";
+  const stArq = arquivado ? `<span class="badge arq">Arquivada</span>` : "";
+  return `<li class="topico u-${t.urgencia}" tabindex="0" data-act="abrir" data-id="${t.id}" data-src="${arquivado ? "arq" : "ativo"}">
+    <div class="u-bloco">${medidor(nivel)}<span>${URG[t.urgencia]?.l || ""}</span></div>
+    <div class="info"><div class="tit">${esc(t.titulo)}</div><div class="meta">${avatar(t.autorNome, t.autorUid, true)}${quando}</div></div>
     <div class="lado">
       <span class="s-rec">${t.recusas ? `<span class="badge rec" title="Quantidade de vezes que o admin recusou a conclusão">${txtRecusas(t.recusas)}</span>` : ""}</span>
-      <span class="s-st">
-      ${t.status === "programado" ? `<span class="stat"><span class="badge prog">Programado</span>${t.programadoPor?.nome ? `<small title="Programado por ${esc(t.programadoPor.nome)}">por ${esc(t.programadoPor.nome)}</small>` : ""}</span>` : ""}
-      ${t.status === "pendente" ? `<span class="stat"><span class="badge pend">Aguardando aprovação</span>${nomesConf ? `<small title="Execução confirmada por ${nomesConf}">por ${nomesConf}</small>` : ""}</span>` : ""}
-      ${arquivado ? `<span class="badge arq">Arquivada</span>` : ""}
-      </span>
-      <span class="badge ${t.urgencia} urg">${URG[t.urgencia]?.l || ""}</span>
+      <span class="s-st">${stProg}${stPend}${stArq}</span>
       <span class="cont ${nConf ? "verde" : ""}" title="Confirmações de execução">${IC_OK}${nConf}</span>
+      ${t.fotosCount ? `<span class="cont" title="Fotos">${IC_FOTO}${t.fotosCount}</span>` : ""}
       <span class="cont c-resp" title="Respostas">${IC_MSG}${t.respostasCount || 0}</span>
     </div>
   </li>`;
@@ -520,6 +720,7 @@ function topicoAtual(){ return cur && (cur.src === "arq" ? arq.itens : ativos).f
 
 function renderModal(){
   const t = topicoAtual(); if (!t) return;
+  $("#m-topico-box").style.setProperty("--urg", URG[t.urgencia]?.cor || "var(--marca)");
   const salvo = $("#r-texto")?.value || "";
   const arquivado = !!t.arquivadoEm;
   const conf = t.confirmacoes || [];
@@ -554,6 +755,7 @@ function renderModal(){
       <div class="quem">${avatar(t.autorNome, t.autorUid, true)}<span><b>${esc(t.autorNome)}</b> publicou ${ago(t.criadoEm)}${t.editadoEm ? " · editada" : ""}</span>
         <span class="badge ${t.urgencia}" style="margin-left:auto">Urgência ${URG[t.urgencia]?.l.toLowerCase()}</span></div>
       <div class="desc">${esc(t.descricao)}</div>
+      ${galeria(t)}
       ${aviso}
       <div class="acoes">${acoes}</div>
       <div class="resp-tit">Respostas (${t.respostasCount || 0})</div>
@@ -565,34 +767,83 @@ function renderModal(){
   if (salvo && $("#r-texto")) $("#r-texto").value = salvo;
   $("#m-topico").classList.remove("oculto");
 }
+const fotoOk = d => typeof d === "string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(d);
+function galeria(t){
+  if (!t.fotosCount) return "";
+  if (fotosCarregando) return `<div class="galeria">${Array(Math.min(t.fotosCount, MAX_FOTOS)).fill('<div class="foto sk"></div>').join("")}</div>`;
+  return `<div class="galeria">${fotos.map((f, i) => `<button type="button" class="foto" data-act="foto" data-i="${i}" aria-label="Ampliar foto ${i + 1}"><img src="${esc(f.data)}" alt="Foto ${i + 1} da publicação" loading="lazy"></button>`).join("")}</div>`;
+}
 function respHtml(r){
   return `<div class="resp">${avatar(r.autorNome, r.autorUid, true)}<div><div class="nome">${esc(r.autorNome)}<span>${ago(r.criadoEm)}</span></div><div class="txt">${esc(r.texto)}</div></div></div>`;
 }
 
 async function abrirTopico(id, src){
-  cur = { id, src }; respostas = []; respostasCarregando = true;
+  cur = { id, src }; respostas = []; fotos = []; respostasCarregando = true; fotosCarregando = true;
   renderModal();
   const t = topicoAtual();
   if (!t) return;
-  if (!t.respostasCount) { respostasCarregando = false; renderModal(); return; }   // 0 respostas = 0 leituras
-  try {
-    const snap = await getDocs(query(collection(db, "topicos", id, "respostas"), orderBy("criadoEm"), limit(100)));
-    respostas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  } catch (e) { toast(erroTxt(e)); }
-  respostasCarregando = false;
+  const tarefas = [];   // 0 respostas e 0 fotos = 0 leituras
+  if (t.respostasCount) tarefas.push(getDocs(query(collection(db, "topicos", id, "respostas"), orderBy("criadoEm"), limit(100)))
+    .then(snap => { respostas = snap.docs.map(d => ({ id: d.id, ...d.data() })); }));
+  if (t.fotosCount) tarefas.push(getDocs(query(collection(db, "topicos", id, "fotos"), orderBy("criadoEm"), limit(MAX_FOTOS)))
+    .then(snap => { fotos = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(f => fotoOk(f.data)); }));
+  try { await Promise.all(tarefas); } catch (e) { toast(erroTxt(e)); }
+  respostasCarregando = false; fotosCarregando = false;
   if (cur?.id === id) renderModal();
 }
 
 function fecharModais(){
-  $("#m-topico").classList.add("oculto"); $("#m-novo").classList.add("oculto");
-  cur = null; respostas = []; editId = null;
+  $("#m-topico").classList.add("oculto"); $("#m-novo").classList.add("oculto"); fecharFoto();
+  cur = null; respostas = []; fotos = []; editId = null;
+}
+
+/* ----- lightbox ----- */
+function abrirFoto(i){
+  if (!fotos[i]) return;
+  lbI = i;
+  $("#lb-img").src = fotos[i].data;
+  $("#lb-img").alt = `Foto ${i + 1} de ${fotos.length}`;
+  $("#lb-cont").textContent = `${i + 1} / ${fotos.length}`;
+  $("#lb-ant").classList.toggle("oculto", fotos.length < 2);
+  $("#lb-prox").classList.toggle("oculto", fotos.length < 2);
+  $("#lightbox").classList.remove("oculto");
+}
+function moverFoto(d){ if (fotos.length > 1) abrirFoto((lbI + d + fotos.length) % fotos.length); }
+function fecharFoto(){ $("#lightbox").classList.add("oculto"); $("#lb-img").removeAttribute("src"); }
+
+/* ----- fotos no formulário ----- */
+function comprimir(file, max = 1280){   // reduz a foto no próprio aparelho: ~100-250 KB cada
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
+      const c = document.createElement("canvas"); c.width = w; c.height = h;
+      const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      let q = .8, out = c.toDataURL("image/jpeg", q);
+      while (out.length > 280000 && q > .4) { q -= .1; out = c.toDataURL("image/jpeg", q); }
+      out.length > 600000 ? rej(new Error("grande")) : res(out);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error("leitura")); };
+    img.src = url;
+  });
+}
+function renderFotosForm(){
+  $("#n-fotos").innerHTML =
+    fotosForm.map((f, i) => `<div class="foto-prev"><img src="${esc(f.data)}" alt="Foto ${i + 1}"><button type="button" class="foto-x" data-act="foto-rem" data-i="${i}" aria-label="Remover foto ${i + 1}">×</button></div>`).join("") +
+    (fotosProc ? `<div class="foto-prev proc">Enviando…</div>` : "") +
+    (!fotosProc && fotosForm.length < MAX_FOTOS ? `<button type="button" class="foto-add" data-act="foto-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Adicionar</span></button>` : "");
 }
 
 // Abre o formulário: sem argumento = nova publicação; com publicação = edição
 function abrirForm(t){
+  if (t && fotosCarregando) { toast("Aguarde as fotos carregarem."); return; }
+  const fotosAtuais = t ? fotos.slice() : [];
   fecharModais();
   $("#form-novo").reset();
   editId = t ? t.id : null;
+  fotosForm = fotosAtuais.map(f => ({ id: f.id, data: f.data })); fotosRem = []; fotosProc = false; renderFotosForm();
   $("#mn-tit").textContent = t ? "Editar publicação" : "Nova publicação";
   $("#n-enviar").textContent = t ? "Salvar" : "Publicar";
   if (t) {
@@ -649,7 +900,7 @@ async function acao(nome, el){
     else if (nome === "excluir") {
       if (!confirm("Excluir esta publicação de vez? Essa ação não pode ser desfeita.")) return;
       const era = cur.src;
-      await apagarTopico(t.id, (t.respostasCount || 0) > 0);
+      await apagarTopico(t.id, (t.respostasCount || 0) > 0, (t.fotosCount || 0) > 0);
       if (era === "arq") { arq.itens = arq.itens.filter(x => x.id !== t.id); fecharModais(); render(); }
       toast("Publicação excluída.");
     }
@@ -675,46 +926,86 @@ document.addEventListener("click", e => {
   const el = e.target.closest("[data-act]");
   if (el) {
     const a = el.dataset.act;
-    if (a === "visao") { visao = el.dataset.v; render(); if (visao === "arquivados" && !arq.carregado) carregarArquivados(false); }
+    if (a !== "menu") $("#app").classList.remove("menu-aberto");
+    if (a === "menu") $("#app").classList.toggle("menu-aberto");
+    else if (a === "menu-fechar") {}
+    else if (a === "visao") { visao = el.dataset.v; render(); if (visao === "arquivados" && !arq.carregado) carregarArquivados(false); }
     else if (a === "abrir") abrirTopico(el.dataset.id, el.dataset.src);
     else if (a === "novo") abrirForm(null);
     else if (a === "fechar") fecharModais();
     else if (a === "sair") signOut(auth);
     else if (a === "mais-arq") carregarArquivados(true);
     else if (a === "atualizar-arq") carregarArquivados(false);
+    else if (a === "foto") abrirFoto(+el.dataset.i);
+    else if (a === "foto-fechar") fecharFoto();
+    else if (a === "foto-ant") moverFoto(-1);
+    else if (a === "foto-prox") moverFoto(1);
+    else if (a === "foto-add") $("#n-arq").click();
+    else if (a === "foto-rem") { const f = fotosForm.splice(+el.dataset.i, 1)[0]; if (f?.id) fotosRem.push(f.id); renderFotosForm(); }
     else acao(a, el);
     return;
   }
+  if (e.target.id === "lightbox") { fecharFoto(); return; }
   if (e.target.classList.contains("fundo-modal")) fecharModais();
 });
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") fecharModais();
+  if (!$("#lightbox").classList.contains("oculto")) {
+    if (e.key === "Escape") { fecharFoto(); return; }
+    if (e.key === "ArrowLeft") moverFoto(-1);
+    if (e.key === "ArrowRight") moverFoto(1);
+    return;
+  }
+  if (e.key === "Escape") { fecharModais(); $("#app").classList.remove("menu-aberto"); }
   if ((e.key === "Enter" || e.key === " ") && e.target.classList?.contains("topico") && e.target.tabIndex >= 0) { e.preventDefault(); e.target.click(); }
 });
 $("#busca").addEventListener("input", e => { termo = e.target.value; render(); });
 $("#n-desc").addEventListener("input", e => $("#n-cont").textContent = e.target.value.length);
 
+$("#n-arq").addEventListener("change", async e => {
+  const arquivos = [...e.target.files]; e.target.value = "";
+  const vagas = MAX_FOTOS - fotosForm.length;
+  if (arquivos.length > vagas) toast(`Máximo de ${MAX_FOTOS} fotos por publicação.`);
+  const lote = arquivos.slice(0, Math.max(0, vagas));
+  if (!lote.length) return;
+  fotosProc = true; renderFotosForm();
+  for (const f of lote) {
+    try { fotosForm.push({ id: null, data: await comprimir(f) }); }
+    catch { toast("Não foi possível ler uma das imagens."); }
+  }
+  fotosProc = false; renderFotosForm();
+});
+
 $("#form-novo").addEventListener("submit", async e => {
   e.preventDefault();
+  if (fotosProc) { toast("Aguarde as fotos terminarem de carregar."); return; }
   const btn = $("#n-enviar"); btn.disabled = true;
   const urgencia = document.querySelector('input[name="urg"]:checked').value;
   const dados = {
     titulo: $("#n-titulo").value.trim(),
     descricao: $("#n-desc").value.trim(),
-    urgencia, urgenciaNivel: URG[urgencia].n
+    urgencia, urgenciaNivel: URG[urgencia].n,
+    fotosCount: fotosForm.length
   };
+  const novas = fotosForm.filter(f => !f.id);
   try {
+    const b = writeBatch(db);
     if (editId) {
-      await updateDoc(doc(db, "topicos", editId), { ...dados, editadoEm: Date.now() });
+      fotosRem.forEach(id => b.delete(doc(db, "topicos", editId, "fotos", id)));
+      novas.forEach((f, k) => b.set(doc(collection(db, "topicos", editId, "fotos")), { data: f.data, criadoEm: Date.now() + k, autorUid: user.uid }));
+      b.update(doc(db, "topicos", editId), { ...dados, editadoEm: Date.now() });
+      await b.commit();
       fecharModais(); toast("Publicação atualizada.");
     } else {
-      await addDoc(TOPICOS, {
+      const ref = doc(TOPICOS);
+      b.set(ref, {
         ...dados,
         status: "aberto",
         autorUid: user.uid, autorNome: nomeDe(user),
         criadoEm: Date.now(),
         respostasCount: 0, confirmacoes: []
       });
+      novas.forEach((f, k) => b.set(doc(collection(db, "topicos", ref.id, "fotos")), { data: f.data, criadoEm: Date.now() + k, autorUid: user.uid }));
+      await b.commit();
       fecharModais(); visao = "todos"; render(); toast("Publicação criada.");
     }
   } catch (err) { toast(erroTxt(err)); }
@@ -769,7 +1060,7 @@ function liberar(){
   acesso = true;
   $("#login").classList.add("oculto"); $("#espera").classList.add("oculto"); $("#app").classList.remove("oculto");
   render(); iniciarLista();
-  if (isAdmin) limparVencidas();
+  limparVencidas();
 }
 async function criarPerfil(){      // contas antigas (criadas antes da aprovação) também passam pelo admin
   if (criandoPerfil) return; criandoPerfil = true;
