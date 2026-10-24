@@ -751,7 +751,7 @@ function renderModal(){
 
   let acoes = "";
   if (!arquivado) {
-    if ((!souAutor || (t.recusas || 0) > 0) && t.status === "aberto") acoes += `<button class="btn ok" data-act="programar">Programado</button>`;
+    if ((!souAutor || (t.recusas || 0) > 0) && t.status === "aberto") acoes += `<button class="btn ok" data-act="programar">Programa</button>`;
     if (t.status === "programado" && visao === "programados") acoes += `<button class="btn ok" data-act="executar">Confirmar execução</button>`;
     if (t.status === "programado" && visao === "programados") acoes += `<button class="btn" data-act="desprogramar">Desprogramar</button>`;
     if (isAdmin && t.status === "pendente") acoes += `<button class="btn ok" data-act="aprovar">Aprovar e arquivar</button><button class="btn" data-act="recusar">Recusar</button>`;
@@ -763,8 +763,6 @@ function renderModal(){
 
   let aviso = "";
   if (!arquivado && euConfirmei) aviso = `<div class="aviso neutro">Você confirmou a execução. ${t.status === "pendente" ? "Agora é só aguardar o admin." : ""}</div>`;
-  else if (!arquivado && souAutor && t.status === "aberto") aviso = `<div class="aviso neutro">Outros usuários podem marcar esta publicação como programada.</div>`;
-  if (souAutor && travada(t)) aviso += `<div class="aviso neutro">Esta publicação foi programada ou já foi recusada, e não pode mais ser editada ou excluída. Só o admin pode.</div>`;
   if (t.status === "programado") aviso += `<div class="aviso neutro">${ultimaAcao(t) || "Programado"}. Confirme a execução quando ela for feita.</div>`;
   if (t.status === "aberto" && t.desprogramadoPor?.nome) aviso += `<div class="aviso neutro">${ultimaAcao(t)}.</div>`;
   if (t.status === "pendente" && t.programadoPor?.nome) aviso += `<div class="aviso neutro">Programado por ${esc(t.programadoPor.nome)} ${ago(t.programadoPor.em)}.</div>`;
