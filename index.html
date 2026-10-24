@@ -169,7 +169,7 @@ main{min-width:0}
 
 /* ---------- painel lateral ---------- */
 .fundo-modal{position:fixed;inset:0;background:#17142b99;z-index:50;display:flex;justify-content:flex-end;align-items:stretch;padding:0;overflow-y:auto}
-.modal{background:#fff;width:100%;max-width:600px;min-height:100%;animation:desliza .22s ease-out;border-top:6px solid var(--urg,var(--marca))}
+.modal{align-self:flex-start;flex:none;background:#fff;width:100%;max-width:600px;min-height:100%;animation:desliza .22s ease-out;border-top:6px solid var(--urg,var(--marca))}
 @keyframes desliza{from{transform:translateX(36px);opacity:.3}to{transform:none;opacity:1}}
 @keyframes sobe{from{transform:translateY(14px);opacity:.4}to{transform:none;opacity:1}}
 .modal .topo{display:flex;align-items:flex-start;gap:12px;padding:24px 28px 0}
@@ -193,6 +193,24 @@ main{min-width:0}
 .nova-resp textarea{min-height:80px}
 .nova-resp .btn{margin-top:10px}
 .modal .vazio{border:0}
+.r-midia{margin-top:10px}
+.r-barra{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.r-barra .btn svg{width:18px;height:18px;flex:none}
+.r-prev{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+.r-img{position:relative;width:96px;height:96px;border-radius:10px;overflow:hidden;border:1.5px solid var(--linha);background:var(--fundo2)}
+.r-img img{width:100%;height:100%;object-fit:cover;display:block}
+.r-aud{position:relative;display:flex;align-items:center;gap:8px;max-width:100%}
+.r-aud audio{height:40px;max-width:100%}
+.r-x{width:26px;height:26px;border-radius:50%;border:0;background:#17142bcc;color:#fff;font-size:17px;line-height:1;display:grid;place-items:center;padding:0;flex:none}
+.r-x:hover{background:var(--max)}
+.r-img .r-x{position:absolute;top:5px;right:5px}
+.r-gravando{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1.5px solid #f5c2c3;background:var(--max-bg);border-radius:var(--raio);font-weight:700;color:var(--max-t)}
+.r-gravando .pt{width:10px;height:10px;border-radius:50%;background:var(--max);animation:pulsa 1s ease-in-out infinite}
+.r-gravando .tempo{font-variant-numeric:tabular-nums}
+.resp .midia{margin-top:8px}
+.resp .midia img{display:block;max-width:240px;max-height:240px;border-radius:10px;border:1.5px solid var(--linha);cursor:zoom-in;object-fit:cover}
+.resp .midia audio{display:block;max-width:100%;height:40px;margin-top:8px}
+.resp > div{min-width:0}
 .urg-opcoes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .urg-opcoes input{position:absolute;opacity:0}
 .urg-opcoes label{margin:0;text-align:center;border:2px solid var(--linha);border-radius:var(--raio);padding:11px 4px;cursor:pointer;font-weight:700;font-size:14px;color:var(--suave)}
@@ -402,6 +420,7 @@ main{min-width:0}
   <div class="modal" id="m-topico-box"></div>
 </div>
 
+<input type="file" id="r-arq" accept="image/*" hidden>
 <div class="lightbox oculto" id="lightbox" role="dialog" aria-modal="true" aria-label="Foto ampliada">
   <button class="lb-x" data-act="foto-fechar" aria-label="Fechar">×</button>
   <button class="lb-nav ant" id="lb-ant" data-act="foto-ant" aria-label="Foto anterior">‹</button>
@@ -430,7 +449,7 @@ const firebaseConfig = {
   appId: "1:50661581615:web:2676b97f98524e41b377da"
 };
 // Admin = documento usuarios/{uid} com o campo admin: true (definido direto no console do Firebase)
-const DIAS_ARQUIVO = 30;            // arquivadas são apagadas depois desse prazo
+const DIAS_ARQUIVO = 10;            // arquivadas são apagadas depois desse prazo
 const DIA_MS = 86400000;
 
 /* Economia de recursos:
@@ -572,7 +591,7 @@ async function apagarTopico(id, temRespostas, temFotos){
   await writeBatch(db).delete(doc(db, "topicos", id)).commit();
 }
 
-// Ao abrir o app (qualquer usuário aprovado), apaga as publicações arquivadas há mais de 30 dias,
+// Ao abrir o app (qualquer usuário aprovado), apaga as publicações arquivadas há mais de 10 dias,
 // junto com respostas e fotos. No máximo uma checagem a cada 6 horas por aparelho.
 const LIMPEZA_KEY = "forum-limpeza";
 async function limparVencidas(){
@@ -762,11 +781,14 @@ function renderModal(){
       <div id="resp-lista">${respostasCarregando ? `<div class="vazio" style="padding:20px">Carregando…</div>` : respostas.map(respHtml).join("")}</div>
       ${arquivado ? "" : `<div class="nova-resp"><label for="r-texto" class="oculto">Sua resposta</label>
         <textarea id="r-texto" maxlength="1000" placeholder="Escreva uma resposta ou atualização…"></textarea>
-        <button class="btn prim" data-act="responder">Responder</button></div>`}
+        <div class="r-midia" id="r-midia"></div>
+        <button class="btn prim" data-act="responder" id="r-enviar">Responder</button></div>`}
     </div>`;
   if (salvo && $("#r-texto")) $("#r-texto").value = salvo;
+  renderRMidia();
   $("#m-topico").classList.remove("oculto");
 }
+const audioOk = d => typeof d === "string" && d.length < 600000 && /^data:audio\/(webm|mp4|ogg|mpeg|aac|x-m4a)[^,]*;base64,[A-Za-z0-9+\/=]+$/.test(d);
 const fotoOk = d => typeof d === "string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(d);
 function galeria(t){
   if (!t.fotosCount) return "";
@@ -774,11 +796,11 @@ function galeria(t){
   return `<div class="galeria">${fotos.map((f, i) => `<button type="button" class="foto" data-act="foto" data-i="${i}" aria-label="Ampliar foto ${i + 1}"><img src="${esc(f.data)}" alt="Foto ${i + 1} da publicação" loading="lazy"></button>`).join("")}</div>`;
 }
 function respHtml(r){
-  return `<div class="resp">${avatar(r.autorNome, r.autorUid, true)}<div><div class="nome">${esc(r.autorNome)}<span>${ago(r.criadoEm)}</span></div><div class="txt">${esc(r.texto)}</div></div></div>`;
+  return `<div class="resp">${avatar(r.autorNome, r.autorUid, true)}<div><div class="nome">${esc(r.autorNome)}<span>${ago(r.criadoEm)}</span></div>${r.texto ? `<div class="txt">${esc(r.texto)}</div>` : ""}${(fotoOk(r.imagem) || audioOk(r.audio)) ? `<div class="midia">${fotoOk(r.imagem) ? `<img src="${esc(r.imagem)}" alt="Imagem enviada na resposta" data-act="resp-img" data-id="${esc(r.id)}" loading="lazy">` : ""}${audioOk(r.audio) ? `<audio controls preload="none" src="${esc(r.audio)}"></audio>` : ""}</div>` : ""}</div></div>`;
 }
 
 async function abrirTopico(id, src){
-  cur = { id, src }; respostas = []; fotos = []; respostasCarregando = true; fotosCarregando = true;
+  limparRMidia(); cur = { id, src }; respostas = []; fotos = []; respostasCarregando = true; fotosCarregando = true;
   renderModal();
   const t = topicoAtual();
   if (!t) return;
@@ -794,7 +816,7 @@ async function abrirTopico(id, src){
 
 function fecharModais(){
   $("#m-topico").classList.add("oculto"); $("#m-novo").classList.add("oculto"); fecharFoto();
-  cur = null; respostas = []; fotos = []; editId = null;
+  limparRMidia(); cur = null; respostas = []; fotos = []; editId = null;
 }
 
 /* ----- lightbox ----- */
@@ -809,7 +831,78 @@ function abrirFoto(i){
   $("#lightbox").classList.remove("oculto");
 }
 function moverFoto(d){ if (fotos.length > 1) abrirFoto((lbI + d + fotos.length) % fotos.length); }
+function abrirImgResp(id){
+  const r = respostas.find(x => x.id === id); if (!r || !fotoOk(r.imagem)) return;
+  lbI = 0; $("#lb-img").src = r.imagem; $("#lb-img").alt = "Imagem da resposta";
+  $("#lb-cont").textContent = ""; $("#lb-ant").classList.add("oculto"); $("#lb-prox").classList.add("oculto");
+  $("#lightbox").classList.remove("oculto");
+}
 function fecharFoto(){ $("#lightbox").classList.add("oculto"); $("#lb-img").removeAttribute("src"); }
+
+/* ----- mídia da resposta: imagem e áudio (guardados no próprio documento, comprimidos) ----- */
+const MAX_AUDIO_S = 60;
+let rImg = null, rAudio = null, rProc = false;
+let gravando = null;   // { mr, stream, chunks, ini, timer, cancelado }
+const IC_MIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>';
+function limparRMidia(){
+  if (gravando) { gravando.cancelado = true; try { gravando.mr.stop(); } catch (e) {} pararStream(); }
+  rImg = null; rAudio = null; rProc = false;
+}
+function pararStream(){ if (!gravando) return; clearInterval(gravando.timer); gravando.stream.getTracks().forEach(t => t.stop()); gravando = null; }
+function fmtT(s){ return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }
+function renderRMidia(){
+  const box = $("#r-midia"); if (!box) return;
+  let h = "";
+  if (gravando) {
+    h = `<div class="r-gravando"><span class="pt"></span><span>Gravando <span class="tempo" id="r-tempo">${fmtT(Math.floor((Date.now() - gravando.ini) / 1000))}</span> / ${fmtT(MAX_AUDIO_S)}</span>
+      <button type="button" class="btn ok peq" data-act="r-parar">Parar</button>
+      <button type="button" class="btn peq" data-act="r-cancelar">Cancelar</button></div>`;
+  } else {
+    h = `<div class="r-barra">
+      <button type="button" class="btn peq" data-act="r-foto" ${rImg || rProc ? "disabled" : ""}>${IC_FOTO}<span>Imagem</span></button>
+      ${navigator.mediaDevices && window.MediaRecorder ? `<button type="button" class="btn peq" data-act="r-gravar" ${rAudio || rProc ? "disabled" : ""}>${IC_MIC}<span>Gravar áudio</span></button>` : ""}
+      ${rProc ? `<span style="color:var(--suave);font-size:13px;font-weight:700">Processando…</span>` : ""}</div>`;
+    if (rImg || rAudio) h += `<div class="r-prev">
+      ${rImg ? `<div class="r-img"><img src="${esc(rImg)}" alt="Imagem anexada"><button type="button" class="r-x" data-act="r-img-rem" aria-label="Remover imagem">×</button></div>` : ""}
+      ${rAudio ? `<div class="r-aud"><audio controls src="${esc(rAudio)}"></audio><button type="button" class="r-x" data-act="r-aud-rem" aria-label="Remover áudio">×</button></div>` : ""}</div>`;
+  }
+  box.innerHTML = h;
+}
+function melhorMime(){
+  return ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus", "audio/webm"].find(m => MediaRecorder.isTypeSupported?.(m)) || "";
+}
+async function iniciarGravacao(){
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime = melhorMime();
+    const mr = new MediaRecorder(stream, { ...(mime ? { mimeType: mime } : {}), audioBitsPerSecond: 24000 });   // ~3 KB/s: 60 s ≈ 180 KB
+    const g = { mr, stream, chunks: [], ini: Date.now(), cancelado: false, timer: null };
+    mr.ondataavailable = e => { if (e.data.size) g.chunks.push(e.data); };
+    mr.onstop = async () => {
+      const cancelado = g.cancelado;
+      clearInterval(g.timer); g.stream.getTracks().forEach(t => t.stop()); if (gravando === g) gravando = null;
+      if (cancelado) { renderRMidia(); return; }
+      rProc = true; renderRMidia();
+      try {
+        const blob = new Blob(g.chunks, { type: mr.mimeType || mime || "audio/webm" });
+        if (blob.size > 420000) throw new Error("grande");
+        const url = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(blob); });
+        if (!audioOk(url)) throw new Error("formato");
+        rAudio = url;
+      } catch { toast("Não foi possível salvar o áudio. Tente uma gravação mais curta."); }
+      rProc = false; renderRMidia();
+    };
+    gravando = g; mr.start();
+    g.timer = setInterval(() => {
+      const s = Math.floor((Date.now() - g.ini) / 1000);
+      const el = $("#r-tempo"); if (el) el.textContent = fmtT(s);
+      if (s >= MAX_AUDIO_S) { clearInterval(g.timer); try { mr.stop(); } catch (e) {} }
+    }, 250);
+    renderRMidia();
+  } catch (e) {
+    toast(e?.name === "NotAllowedError" ? "Permita o uso do microfone para gravar." : "Não foi possível acessar o microfone.");
+  }
+}
 
 /* ----- fotos no formulário ----- */
 function comprimir(file, max = 1280){   // reduz a foto no próprio aparelho: ~100-250 KB cada
@@ -905,16 +998,21 @@ async function acao(nome, el){
       toast("Publicação excluída.");
     }
     else if (nome === "responder") {
-      const txt = $("#r-texto").value.trim(); if (!txt) return;
+      const txt = $("#r-texto").value.trim();
+      if (gravando) { toast("Pare a gravação antes de enviar."); return; }
+      if (rProc) { toast("Aguarde o processamento da mídia."); return; }
+      if (!txt && !rImg && !rAudio) return;
       el.disabled = true;
       const novo = { texto: txt, autorUid: user.uid, autorNome: nomeDe(user), criadoEm: Date.now() };
+      if (rImg) novo.imagem = rImg;
+      if (rAudio) novo.audio = rAudio;
       const nref = doc(collection(db, "topicos", t.id, "respostas"));
       const b = writeBatch(db);
       b.set(nref, novo);
       b.update(ref, { respostasCount: increment(1) });
       await b.commit();
       respostas.push({ id: nref.id, ...novo });
-      $("#r-texto").value = "";
+      $("#r-texto").value = ""; rImg = null; rAudio = null;
       renderModal();
     }
     // quando o admin arquiva, o listener remove a publicação e fecha o modal sozinho
@@ -941,6 +1039,13 @@ document.addEventListener("click", e => {
     else if (a === "foto-ant") moverFoto(-1);
     else if (a === "foto-prox") moverFoto(1);
     else if (a === "foto-add") $("#n-arq").click();
+    else if (a === "resp-img") abrirImgResp(el.dataset.id);
+    else if (a === "r-foto") $("#r-arq").click();
+    else if (a === "r-img-rem") { rImg = null; renderRMidia(); }
+    else if (a === "r-aud-rem") { rAudio = null; renderRMidia(); }
+    else if (a === "r-gravar") iniciarGravacao();
+    else if (a === "r-parar") { try { gravando?.mr.stop(); } catch (e) {} }
+    else if (a === "r-cancelar") { if (gravando) { gravando.cancelado = true; try { gravando.mr.stop(); } catch (e) {} } }
     else if (a === "foto-rem") { const f = fotosForm.splice(+el.dataset.i, 1)[0]; if (f?.id) fotosRem.push(f.id); renderFotosForm(); }
     else acao(a, el);
     return;
@@ -973,6 +1078,13 @@ $("#n-arq").addEventListener("change", async e => {
     catch { toast("Não foi possível ler uma das imagens."); }
   }
   fotosProc = false; renderFotosForm();
+});
+
+$("#r-arq").addEventListener("change", async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  rProc = true; renderRMidia();
+  try { rImg = await comprimir(f, 1024); } catch { toast("Não foi possível ler a imagem."); }
+  rProc = false; renderRMidia();
 });
 
 $("#form-novo").addEventListener("submit", async e => {
