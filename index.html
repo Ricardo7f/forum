@@ -735,6 +735,9 @@ function linha(t){
 }
 
 /* ============ MODAL DA PUBLICAÇÃO ============ */
+// Publicação programada, com execução confirmada ou já recusada alguma vez fica travada: só o admin edita ou exclui
+function travada(t){ return !isAdmin && (t.status === "programado" || t.status === "pendente" || (t.recusas || 0) > 0); }
+
 function topicoAtual(){ return cur && (cur.src === "arq" ? arq.itens : ativos).find(t => t.id === cur.id); }
 
 function renderModal(){
@@ -748,19 +751,20 @@ function renderModal(){
 
   let acoes = "";
   if (!arquivado) {
-    if (!souAutor && t.status === "aberto") acoes += `<button class="btn ok" data-act="programar">Programado</button>`;
+    if ((!souAutor || (t.recusas || 0) > 0) && t.status === "aberto") acoes += `<button class="btn ok" data-act="programar">Programado</button>`;
     if (t.status === "programado" && visao === "programados") acoes += `<button class="btn ok" data-act="executar">Confirmar execução</button>`;
     if (t.status === "programado" && visao === "programados") acoes += `<button class="btn" data-act="desprogramar">Desprogramar</button>`;
     if (isAdmin && t.status === "pendente") acoes += `<button class="btn ok" data-act="aprovar">Aprovar e arquivar</button><button class="btn" data-act="recusar">Recusar</button>`;
     if (isAdmin && t.status === "aberto") acoes += `<button class="btn" data-act="aprovar">Arquivar</button>`;
-    if (souAutor) acoes += `<button class="btn" data-act="editar">Editar</button>`;
+    if (souAutor && !travada(t)) acoes += `<button class="btn" data-act="editar">Editar</button>`;
   }
   if (isAdmin && arquivado) acoes += `<button class="btn ok" data-act="desarquivar">Desarquivar</button>`;
-  if (isAdmin || souAutor) acoes += `<button class="btn perigo" data-act="excluir">Excluir</button>`;
+  if (isAdmin || (souAutor && !travada(t))) acoes += `<button class="btn perigo" data-act="excluir">Excluir</button>`;
 
   let aviso = "";
   if (!arquivado && euConfirmei) aviso = `<div class="aviso neutro">Você confirmou a execução. ${t.status === "pendente" ? "Agora é só aguardar o admin." : ""}</div>`;
   else if (!arquivado && souAutor && t.status === "aberto") aviso = `<div class="aviso neutro">Outros usuários podem marcar esta publicação como programada.</div>`;
+  if (souAutor && travada(t)) aviso += `<div class="aviso neutro">Esta publicação foi programada ou já foi recusada, e não pode mais ser editada ou excluída. Só o admin pode.</div>`;
   if (t.status === "programado") aviso += `<div class="aviso neutro">${ultimaAcao(t) || "Programado"}. Confirme a execução quando ela for feita.</div>`;
   if (t.status === "aberto" && t.desprogramadoPor?.nome) aviso += `<div class="aviso neutro">${ultimaAcao(t)}.</div>`;
   if (t.status === "pendente" && t.programadoPor?.nome) aviso += `<div class="aviso neutro">Programado por ${esc(t.programadoPor.nome)} ${ago(t.programadoPor.em)}.</div>`;
@@ -974,7 +978,10 @@ async function acao(nome, el){
       await updateDoc(ref, { confirmacoes: arrayUnion({ uid: user.uid, nome: nomeDe(user), em: Date.now() }), status: "pendente" });
       toast("Execução confirmada. Enviada para aprovação do admin.");
     }
-    else if (nome === "editar") abrirForm(t);
+    else if (nome === "editar") {
+      if (travada(t)) { toast("Publicação travada: só o admin pode editar."); return; }
+      abrirForm(t);
+    }
     else if (nome === "aprovar") {
       await updateDoc(ref, { status: "arquivado", arquivadoEm: Date.now(), arquivadoPor: nomeDe(user) });
       arq.carregado = false; toast("Publicação arquivada.");
@@ -991,6 +998,7 @@ async function acao(nome, el){
       toast("Publicação desarquivada. Ela voltou para as abertas.");
     }
     else if (nome === "excluir") {
+      if (travada(t)) { toast("Publicação travada: só o admin pode excluir."); return; }
       if (!confirm("Excluir esta publicação de vez? Essa ação não pode ser desfeita.")) return;
       const era = cur.src;
       await apagarTopico(t.id, (t.respostasCount || 0) > 0, (t.fotosCount || 0) > 0);
@@ -1102,6 +1110,8 @@ $("#form-novo").addEventListener("submit", async e => {
   try {
     const b = writeBatch(db);
     if (editId) {
+      const atual = ativos.find(x => x.id === editId);
+      if (atual && travada(atual)) { toast("Publicação travada: só o admin pode editar."); btn.disabled = false; return; }
       fotosRem.forEach(id => b.delete(doc(db, "topicos", editId, "fotos", id)));
       novas.forEach((f, k) => b.set(doc(collection(db, "topicos", editId, "fotos")), { data: f.data, criadoEm: Date.now() + k, autorUid: user.uid }));
       b.update(doc(db, "topicos", editId), { ...dados, editadoEm: Date.now() });
