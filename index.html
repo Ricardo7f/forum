@@ -271,10 +271,23 @@ main{min-width:0}
 }
 @media (prefers-reduced-motion:reduce){.modal{animation:none}#toast{transition:none}.lateral,.topico{transition:none}}
 
+
+/* ---------- menu lateral compacto: cabe inteiro na tela do notebook, sem rolar ---------- */
+.lateral{gap:clamp(6px,1.5vh,14px);padding:clamp(10px,2.2vh,22px) 14px clamp(10px,1.8vh,14px)}
+.lateral > .logo,.lateral > .nova,.lateral > .usuario{flex:none}
+.lateral .logo{font-size:clamp(21px,3.4vh,27px);padding-top:0;padding-bottom:0}
+.lateral .nova{min-height:clamp(36px,5.6vh,46px)}
+nav{flex:1 0 auto;gap:1px}
+nav .grupo{padding:clamp(7px,1.9vh,18px) 12px clamp(3px,.7vh,6px);font-size:clamp(10px,1.4vh,11px)}
+nav .grupo:first-child{padding-top:2px}
+nav .item{padding:clamp(4px,1.05vh,10px) 12px;font-size:clamp(13.5px,1.9vh,15px)}
+.usuario{flex:none;margin-top:0;padding:clamp(6px,1.2vh,10px) 10px clamp(6px,1.2vh,10px) 12px}
+.usuario #u-av{flex:none;display:flex}
+.usuario .quem-u{flex:1 1 0}
+
 /* ---------- fonte dos títulos ---------- */
 .logo,.login-lado h2,.login-box h1,.barra h2,.topico .tit,.modal h3,.resp-tit,.vazio strong{font-family:"Plus Jakarta Sans","Bricolage Grotesque",system-ui,sans-serif;font-variation-settings:normal}
 .logo{font-weight:800;letter-spacing:-.04em;font-size:25px}
-.lateral .logo{font-size:25px}
 .login-lado h2{letter-spacing:-.03em;line-height:1.12}
 .login-box h1{letter-spacing:-.025em}
 .barra h2{font-size:28px;font-weight:800;letter-spacing:-.03em}
